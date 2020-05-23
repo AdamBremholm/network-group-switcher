@@ -198,6 +198,7 @@ class HostControllerIntegrationTest {
         headers.set("X-COM-PERSIST", "true")
         val request: HttpEntity<HostModel> = HttpEntity<HostModel>(hostModel, headers)
         val result = testRestTemplate.postForEntity("/api/hosts/", request, String::class.java)
+        println(result.body.toString())
         assertTrue(result.body.toString().contains(HOST_NAME_ALREADY_EXISTS))
         assertEquals(result.statusCode, HttpStatus.CONFLICT)
     }

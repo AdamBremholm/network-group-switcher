@@ -8,7 +8,9 @@ import org.kepr.hostapi.model.HostModel
 import org.kepr.hostapi.repository.AliasRepository
 import org.kepr.hostapi.repository.HostRepository
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
+import org.springframework.web.server.ResponseStatusException
 
 
 @Service
@@ -39,7 +41,7 @@ class HostServiceImpl(@Autowired private val hostRepository: HostRepository, @Au
         val hostToSave = Host(hostModel.address, hostModel.name, foundAlias.get())
         foundAlias.get().hosts.add(hostToSave)
         aliasRepository.save(foundAlias.get())
-        return hostRepository.findHostByName(hostModel.name).orElseThrow { NotFoundException(HOST_NOT_FOUND_AFTER_SAVE) }
+        return hostRepository.findHostByName(hostModel.name).orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, HOST_NOT_FOUND_AFTER_SAVE) }
     }
 
     private fun validateAddress(hostModel: HostModel) {
