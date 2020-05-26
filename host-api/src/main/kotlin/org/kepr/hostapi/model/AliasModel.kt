@@ -11,7 +11,7 @@ data class AliasModel(val id: Long?, val name: String, val hosts: List<String>) 
         }
 
         fun toModel(aliasList: List<Alias>): List<AliasModel> {
-            return aliasList.map { it -> toModel(it) }
+            return aliasList.map { toModel(it) }
         }
     }
 
