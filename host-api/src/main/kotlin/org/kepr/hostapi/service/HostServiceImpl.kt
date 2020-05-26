@@ -18,18 +18,18 @@ class HostServiceImpl(@Autowired private val hostRepository: HostRepository, @Au
 
     override fun findAll(): List<Host> = hostRepository.findAll()
     override fun findById(id: Long): Host = hostRepository.findById(id)
-            .orElseThrow { NotFoundException(NO_HOST_FOUND_WITH_ID.plus(id)) }
+            .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, NO_HOST_FOUND_WITH_ID.plus(id)) }
 
     override fun findByName(name: String): Host = hostRepository.findHostByName(name)
-            .orElseThrow { NotFoundException(NO_HOST_FOUND_WITH_NAME.plus(name)) }
+            .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, NO_HOST_FOUND_WITH_NAME.plus(name)) }
 
     override fun findByAddress(address: String): Host = hostRepository.findHostByAddress(address)
-            .orElseThrow { NotFoundException(NO_HOST_FOUND_WITH_ADDRESS.plus(address)) }
+            .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, NO_HOST_FOUND_WITH_ADDRESS.plus(address)) }
 
     override fun findByNameAndAddress(name: String, address: String): Host {
         return hostRepository
                 .findHostByNameAndAddress(name, address)
-                .orElseThrow { NotFoundException(NO_HOST_FOUND_WITH_NAME_AND_ADDRESS.plus(name).plus(", ").plus(address)) }
+                .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, NO_HOST_FOUND_WITH_NAME_AND_ADDRESS.plus(name).plus(", ").plus(address)) }
     }
 
     override fun save(hostModel: HostModel): Host {
@@ -46,7 +46,7 @@ class HostServiceImpl(@Autowired private val hostRepository: HostRepository, @Au
 
     private fun validateAddress(hostModel: HostModel) {
         if (!InetAddressValidator.getInstance().isValidInet4Address(hostModel.address))
-            throw BadRequestException(NOT_VALID_IPV4_ADDRESS.plus(hostModel.address))
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, NOT_VALID_IPV4_ADDRESS.plus(hostModel.address))
     }
 
     override fun update(hostModel: HostModel, id: Long): Host {
@@ -57,7 +57,7 @@ class HostServiceImpl(@Autowired private val hostRepository: HostRepository, @Au
                     hostRepository
                             .save(it.copy(address = hostModel.address, name = hostModel.name, alias = foundAlias.get()))
                 }
-                .orElseThrow { NotFoundException(HOST_NOT_FOUND_AFTER_UPDATE) }
+                .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, HOST_NOT_FOUND_AFTER_UPDATE) }
     }
 
     override fun delete(id: Long) = hostRepository.delete(findById(id))
@@ -69,9 +69,9 @@ class HostServiceImpl(@Autowired private val hostRepository: HostRepository, @Au
                 errorMessage = errorMessage.plus(HOST_ADDRESS_ALREADY_EXISTS.plus(foundHost.address))
             if (foundHost.name == hostModel.name)
                 errorMessage = errorMessage.plus(HOST_NAME_ALREADY_EXISTS.plus(foundHost.name))
-            throw ConflictException(errorMessage.trim())
+            throw ResponseStatusException(HttpStatus.CONFLICT, errorMessage.trim())
         }
-        if (foundAlias == null) throw NotFoundException(NO_ALIAS_FOUND_WITH_NAME.plus(hostModel.alias))
+        if (foundAlias == null) throw ResponseStatusException(HttpStatus.NOT_FOUND, NO_ALIAS_FOUND_WITH_NAME.plus(hostModel.alias))
 
     }
 
@@ -81,18 +81,18 @@ class HostServiceImpl(@Autowired private val hostRepository: HostRepository, @Au
         if (hostModel.alias.isBlank()) errorMessage = errorMessage.plus(EMPTY_ALIAS_NOT_ALLOWED)
 
         if (errorMessage.isNotEmpty())
-            throw BadRequestException(errorMessage)
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, errorMessage)
     }
 
     private fun validateForUpdate(hostModel: HostModel, foundHost: Host?, foundAlias: Alias?) {
         var notFoundErrorMessage = ""
         if (foundHost == null) notFoundErrorMessage = notFoundErrorMessage.plus(NO_HOST_FOUND_WITH_ID.plus(hostModel.id))
         if (foundAlias == null) notFoundErrorMessage = notFoundErrorMessage.plus(NO_ALIAS_FOUND_WITH_NAME.plus(hostModel.alias))
-        if (notFoundErrorMessage.isNotEmpty()) throw NotFoundException(notFoundErrorMessage.trim())
+        if (notFoundErrorMessage.isNotEmpty()) throw ResponseStatusException(HttpStatus.NOT_FOUND, notFoundErrorMessage.trim())
         var conflictErrorMessage = ""
         if (hostRepository.existsByName(hostModel.name)) conflictErrorMessage = conflictErrorMessage.plus(HOST_NAME_ALREADY_EXISTS.plus(hostModel.name))
         if (hostRepository.existsByAddress(hostModel.address)) conflictErrorMessage = conflictErrorMessage.plus(HOST_ADDRESS_ALREADY_EXISTS.plus(hostModel.address))
-        if (conflictErrorMessage.isNotEmpty()) throw ConflictException(conflictErrorMessage.trim())
+        if (conflictErrorMessage.isNotEmpty()) throw ResponseStatusException(HttpStatus.CONFLICT, conflictErrorMessage.trim())
     }
 
 }

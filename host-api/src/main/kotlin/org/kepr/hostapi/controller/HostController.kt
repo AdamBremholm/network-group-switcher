@@ -1,13 +1,14 @@
 package org.kepr.hostapi.controller
 
 import io.swagger.annotations.Api
-import org.kepr.hostapi.exception.BadRequestException
 import org.kepr.hostapi.exception.NON_SUPPORTED_QUERY_PARAM
 import org.kepr.hostapi.model.HostModel
 import org.kepr.hostapi.model.HostModel.Companion.toModel
 import org.kepr.hostapi.service.HostService
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.server.ResponseStatusException
 import javax.validation.Valid
 
 @RestController
@@ -27,7 +28,7 @@ class HostController(@Autowired private val hostService: HostService) {
                 toModel(hostService.findByNameAndAddress(allParams["name"] ?: "", allParams["address"] ?: ""))
             else if (allParams.containsKey("name")) toModel(hostService.findByName(allParams["name"] ?: ""))
             else if (allParams.containsKey("address")) toModel(hostService.findByAddress(allParams["address"] ?: ""))
-            else throw BadRequestException("could not parse query params, please check the docs")
+            else throw ResponseStatusException(HttpStatus.BAD_REQUEST, "could not parse query params, please check the docs")
         }
 
     }
@@ -36,7 +37,7 @@ class HostController(@Autowired private val hostService: HostService) {
         val allowedKeys = setOf("name", "address")
         allParams.keys.forEach {
             if (!allowedKeys.contains(it))
-                throw BadRequestException(NON_SUPPORTED_QUERY_PARAM.plus(it))
+                throw ResponseStatusException(HttpStatus.BAD_REQUEST, NON_SUPPORTED_QUERY_PARAM.plus(it))
         }
     }
 

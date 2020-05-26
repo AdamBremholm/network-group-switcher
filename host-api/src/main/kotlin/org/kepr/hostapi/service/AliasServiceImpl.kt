@@ -7,7 +7,9 @@ import org.kepr.hostapi.model.AliasModel
 import org.kepr.hostapi.repository.AliasRepository
 import org.kepr.hostapi.repository.HostRepository
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
+import org.springframework.web.server.ResponseStatusException
 
 @Service
 class AliasServiceImpl(@Autowired private val aliasRepository: AliasRepository, @Autowired private val hostRepository: HostRepository) : AliasService {
@@ -16,11 +18,11 @@ class AliasServiceImpl(@Autowired private val aliasRepository: AliasRepository, 
     }
 
     override fun findById(id: Long): Alias {
-        return aliasRepository.findById(id).orElseThrow { NotFoundException(NO_ALIAS_FOUND_WITH_ID.plus(id)) }
+        return aliasRepository.findById(id).orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, NO_ALIAS_FOUND_WITH_ID.plus(id)) }
     }
 
     override fun findByName(name: String): Alias {
-        return aliasRepository.findAliasByName(name).orElseThrow { NotFoundException(NO_ALIAS_FOUND_WITH_NAME.plus(name)) }
+        return aliasRepository.findAliasByName(name).orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, NO_ALIAS_FOUND_WITH_NAME.plus(name)) }
     }
 
     override fun save(aliasModel: AliasModel): Alias {
@@ -39,12 +41,12 @@ class AliasServiceImpl(@Autowired private val aliasRepository: AliasRepository, 
 
     private fun validateForSave(aliasModel: AliasModel, dbHosts: List<Host>) {
         if(aliasModel.name.isBlank())
-            throw BadRequestException(EMPTY_NAME_NOT_ALLOWED)
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, EMPTY_NAME_NOT_ALLOWED)
         if (aliasRepository.existsByName(aliasModel.name))
-            throw ConflictException(ALIAS_NAME_ALREADY_EXISTS.plus(aliasModel.name))
+            throw ResponseStatusException(HttpStatus.CONFLICT, ALIAS_NAME_ALREADY_EXISTS.plus(aliasModel.name))
         if (dbHosts.size != aliasModel.hosts.size) {
             val diffList = aliasModel.hosts.minus(dbHosts.map { it.name })
-            throw NotFoundException(THESE_HOSTS_WERE_NOT_FOUND.plus(diffList))
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, THESE_HOSTS_WERE_NOT_FOUND.plus(diffList))
         }
 
     }
