@@ -49,7 +49,7 @@ class HostController(@Autowired private val hostService: HostService) {
     fun save(@Valid @RequestBody hostModel: HostModel): HostModel = toModel(hostService.save(hostModel))
 
     @PutMapping("hosts/{id}")
-    fun update(@PathVariable id: Long, hostModel: HostModel): HostModel = toModel(hostService.update(hostModel, id))
+    fun update(@PathVariable id: Long, @Valid @RequestBody hostModel: HostModel): HostModel = toModel(hostService.update(hostModel, id))
 
     @DeleteMapping("hosts/{id}")
     fun delete(@PathVariable id: Long) = hostService.delete(id)

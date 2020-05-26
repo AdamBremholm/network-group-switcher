@@ -2,8 +2,9 @@ package org.kepr.userapi.model
 
 import org.kepr.userapi.data.User
 import java.lang.IllegalStateException
+import javax.validation.constraints.NotBlank
 
-data class UserModel(val id: Long?, val userName: String, val email: String) {
+data class UserModel(val id: Long?, @NotBlank val userName: String, @NotBlank val email: String) {
 
     companion object {
         fun toModel(user: User): UserModel {

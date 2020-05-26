@@ -16,9 +16,13 @@ import org.kepr.hostapi.service.HostService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.client.TestRestTemplate
+import org.springframework.cloud.netflix.eureka.EnableEurekaClient
+import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
+import org.springframework.test.context.ActiveProfiles
 
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -225,6 +229,22 @@ class HostControllerIntegrationTest {
         assertNotNull(result)
         assertEquals(result.statusCode, HttpStatus.OK)
         assertEquals(resultHostModel.name, hostModel.name)
+    }
+
+    @Test
+    fun updateNormalOperations(){
+        val foundHost = hostService.findByName("desktop");
+        val id = foundHost.id;
+        val hostModel = HostModel(id, "192.168.1.123", "desktop", "nyc")
+        val headers = HttpHeaders()
+        headers.set("X-COM-PERSIST", "true")
+        val request: HttpEntity<HostModel> = HttpEntity<HostModel>(hostModel, headers)
+        val result = testRestTemplate.exchange("/api/hosts/".plus(id), HttpMethod.PUT, request, String::class.java)
+        val resultHostModel: HostModel = objectMapper.readValue(result.body ?: throw IllegalStateException())
+        assertNotNull(result)
+        assertEquals(result.statusCode, HttpStatus.OK)
+        assertEquals(resultHostModel.name, hostModel.name)
+
     }
 
 

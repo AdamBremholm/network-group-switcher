@@ -51,13 +51,10 @@ class HostServiceImpl(@Autowired private val hostRepository: HostRepository, @Au
 
     override fun update(hostModel: HostModel, id: Long): Host {
         val foundAlias = aliasRepository.findAliasByName(hostModel.alias)
-        val foundHost = hostRepository.findById(id)
+        var foundHost = hostRepository.findById(id)
         validateForUpdate(hostModel, foundHost.orElse(null), foundAlias.orElse(null))
-        return hostRepository.findById(id).map {
-                    hostRepository
-                            .save(it.copy(address = hostModel.address, name = hostModel.name, alias = foundAlias.get()))
-                }
-                .orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, HOST_NOT_FOUND_AFTER_UPDATE) }
+        foundHost.get().copy(address = hostModel.address, name = hostModel.name, alias = foundAlias.get())
+       return hostRepository.save(foundHost.get())
     }
 
     override fun delete(id: Long) = hostRepository.delete(findById(id))
@@ -90,8 +87,10 @@ class HostServiceImpl(@Autowired private val hostRepository: HostRepository, @Au
         if (foundAlias == null) notFoundErrorMessage = notFoundErrorMessage.plus(NO_ALIAS_FOUND_WITH_NAME.plus(hostModel.alias))
         if (notFoundErrorMessage.isNotEmpty()) throw ResponseStatusException(HttpStatus.NOT_FOUND, notFoundErrorMessage.trim())
         var conflictErrorMessage = ""
-        if (hostRepository.existsByName(hostModel.name)) conflictErrorMessage = conflictErrorMessage.plus(HOST_NAME_ALREADY_EXISTS.plus(hostModel.name))
-        if (hostRepository.existsByAddress(hostModel.address)) conflictErrorMessage = conflictErrorMessage.plus(HOST_ADDRESS_ALREADY_EXISTS.plus(hostModel.address))
+        if(hostModel.name != foundHost?.name)
+            if (hostRepository.existsByName(hostModel.name)) conflictErrorMessage = conflictErrorMessage.plus(HOST_NAME_ALREADY_EXISTS.plus(hostModel.name))
+        if(hostModel.address != foundHost?.address)
+            if (hostRepository.existsByAddress(hostModel.address)) conflictErrorMessage = conflictErrorMessage.plus(HOST_ADDRESS_ALREADY_EXISTS.plus(hostModel.address))
         if (conflictErrorMessage.isNotEmpty()) throw ResponseStatusException(HttpStatus.CONFLICT, conflictErrorMessage.trim())
     }
 

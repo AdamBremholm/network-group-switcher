@@ -1,10 +1,10 @@
 package org.kepr.hostapi.data
 
 import javax.persistence.*
-import javax.validation.constraints.Size
+import javax.validation.constraints.NotBlank
 
 @Entity(name="alias")
-data class Alias(@Column(unique=true) @Size(min=1)val name: String, @OneToMany(cascade = [(CascadeType.ALL)], fetch = FetchType.LAZY)
+data class Alias(@Column(unique=true) @NotBlank val name: String, @OneToMany(cascade = [(CascadeType.ALL)], fetch = FetchType.LAZY)
 var hosts: MutableList<Host>) {
 
     @Id @GeneratedValue val id: Long? = null

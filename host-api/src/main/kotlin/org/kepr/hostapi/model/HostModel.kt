@@ -3,8 +3,10 @@ package org.kepr.hostapi.model
 import org.kepr.hostapi.data.Host
 import java.lang.IllegalArgumentException
 import java.lang.IllegalStateException
+import javax.validation.constraints.NotBlank
+import javax.validation.constraints.Size
 
-data class HostModel(val id: Long?, val address: String, val name: String, val alias: String) {
+data class HostModel(val id: Long?, @NotBlank val address: String, @NotBlank val name: String, val alias: String) {
 
     companion object {
         fun toModel(host: Host): HostModel {
