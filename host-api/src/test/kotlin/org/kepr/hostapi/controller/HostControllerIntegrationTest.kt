@@ -243,7 +243,7 @@ class HostControllerIntegrationTest {
         val resultHostModel: HostModel = objectMapper.readValue(result.body ?: throw IllegalStateException())
         assertNotNull(result)
         assertEquals(result.statusCode, HttpStatus.OK)
-        assertEquals(resultHostModel.name, hostModel.name)
+        assertEquals(hostModel.address, resultHostModel.address)
 
     }
 

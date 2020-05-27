@@ -51,10 +51,17 @@ class HostServiceImpl(@Autowired private val hostRepository: HostRepository, @Au
 
     override fun update(hostModel: HostModel, id: Long): Host {
         val foundAlias = aliasRepository.findAliasByName(hostModel.alias)
-        var foundHost = hostRepository.findById(id)
-        validateForUpdate(hostModel, foundHost.orElse(null), foundAlias.orElse(null))
-        foundHost.get().copy(address = hostModel.address, name = hostModel.name, alias = foundAlias.get())
-       return hostRepository.save(foundHost.get())
+        val foundHostOptional = hostRepository.findById(id)
+        validateForUpdate(hostModel, foundHostOptional.orElse(null), foundAlias.orElse(null))
+        val hostToUpdate = foundHostOptional.get()
+        if(hostModel.address.isNotBlank())
+            hostToUpdate.address = hostModel.address
+        if(hostModel.name.isNotBlank())
+            hostToUpdate.name = hostModel.name
+        if(foundAlias.isPresent)
+            hostToUpdate.alias = foundAlias.get()
+
+       return hostRepository.save(hostToUpdate)
     }
 
     override fun delete(id: Long) = hostRepository.delete(findById(id))
