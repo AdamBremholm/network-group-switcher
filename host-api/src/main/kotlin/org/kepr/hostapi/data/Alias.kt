@@ -1,13 +1,17 @@
 package org.kepr.hostapi.data
 
+import org.hibernate.annotations.Cascade
+import org.hibernate.annotations.CascadeType
 import javax.persistence.*
 import javax.validation.constraints.NotBlank
 
 @Entity(name="alias")
-data class Alias(@Column(unique=true) @NotBlank val name: String, @OneToMany(cascade = [(CascadeType.ALL)], fetch = FetchType.LAZY)
+data class Alias(@Column(unique=true) @NotBlank var name: String, @OneToMany(mappedBy = "alias", fetch = FetchType.LAZY) @Cascade(CascadeType.ALL)
 var hosts: MutableList<Host>) {
 
     @Id @GeneratedValue val id: Long? = null
 
-
+    override fun toString(): String {
+       return "name: ${this.name}, hosts = ${this.hosts.forEach { it.name }}"
+    }
 }

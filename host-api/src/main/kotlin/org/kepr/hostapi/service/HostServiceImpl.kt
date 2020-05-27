@@ -64,7 +64,19 @@ class HostServiceImpl(@Autowired private val hostRepository: HostRepository, @Au
        return hostRepository.save(hostToUpdate)
     }
 
-    override fun delete(id: Long) = hostRepository.delete(findById(id))
+    override fun delete(id: Long) {
+        val foundHost = hostRepository.findHostById(id)
+        if (foundHost.isPresent && foundHost.get().alias != null) {
+            val aliasName = foundHost.get().alias!!.name
+            val foundAlias = aliasName.let { aliasRepository.findAliasByName(aliasName) }
+            if (foundAlias.isPresent) {
+                foundAlias.get().hosts.remove(foundHost.get())
+                aliasRepository.saveAndFlush(foundAlias.get())
+                foundHost.get().alias = foundAlias.get()
+            }
+        }
+        hostRepository.delete(foundHost.get())
+    }
 
     private fun validateForSave(hostModel: HostModel, foundHost: Host?, foundAlias: Alias?) {
         if (foundHost != null) {

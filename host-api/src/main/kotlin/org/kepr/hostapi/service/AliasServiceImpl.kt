@@ -32,11 +32,24 @@ class AliasServiceImpl(@Autowired private val aliasRepository: AliasRepository, 
     }
 
     override fun update(aliasModel: AliasModel, id: Long): Alias {
-        TODO("Not yet implemented")
+        val foundAliasOptional = aliasRepository.findById(id)
+        if (foundAliasOptional.isEmpty) throw IllegalArgumentException(NO_ALIAS_FOUND_WITH_ID.plus(id))
+        foundAliasOptional.ifPresent{alias ->
+            run {
+                if (aliasModel.name.isNotBlank())
+                    alias.name = aliasModel.name
+                if (aliasModel.hosts.isNotEmpty())
+                    alias.hosts = hostRepository.findHostsByNameIn(aliasModel.hosts)
+
+                aliasRepository.save(alias)
+            }
+        }
+        return foundAliasOptional.get()
     }
 
     override fun delete(id: Long) {
-        TODO("Not yet implemented")
+        val foundAlias = findById(id)
+        aliasRepository.delete(foundAlias)
     }
 
     private fun validateForSave(aliasModel: AliasModel, dbHosts: List<Host>) {
