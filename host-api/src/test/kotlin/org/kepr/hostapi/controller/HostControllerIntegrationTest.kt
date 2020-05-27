@@ -2,10 +2,10 @@ package org.kepr.hostapi.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import org.junit.BeforeClass
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.extension.ExtendWith
 import org.kepr.hostapi.data.Alias
 import org.kepr.hostapi.exception.*
 import org.kepr.hostapi.model.AliasModel
@@ -24,11 +24,14 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.TestPropertySource
+import org.springframework.test.context.junit.jupiter.SpringExtension
 
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ExtendWith(SpringExtension::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class HostControllerIntegrationTest {
+class HostControllerIntegrationTest : AbstractIntegrationTest() {
     @Autowired
     lateinit var testRestTemplate: TestRestTemplate
 
@@ -51,14 +54,12 @@ class HostControllerIntegrationTest {
     val stockholmAlias = Alias("stockholm", mutableListOf())
     val desktopHostModel = HostModel(null, "192.168.1.102", "desktop", "nyc")
 
-
     @BeforeAll
     fun populateDB() {
         aliasRepository.save(nycAlias)
         aliasRepository.save(stockholmAlias)
         hostService.save(desktopHostModel)
     }
-
 
     @Test
     fun findAll() {
@@ -67,7 +68,6 @@ class HostControllerIntegrationTest {
         assertEquals(result.statusCode, HttpStatus.OK)
         val resultModels: List<HostModel> = objectMapper.readValue(result.body ?: throw IllegalStateException())
         assertEquals(resultModels[0].name, desktopHostModel.name)
-
     }
 
     @Test
@@ -76,7 +76,6 @@ class HostControllerIntegrationTest {
         assertNotNull(result)
         assertTrue(result.body.toString().contains(NON_SUPPORTED_QUERY_PARAM))
         assertEquals(result.statusCode, HttpStatus.BAD_REQUEST)
-
     }
 
     @Test
@@ -85,7 +84,6 @@ class HostControllerIntegrationTest {
         assertNotNull(result)
         assertTrue(result.body.toString().contains(NO_HOST_FOUND_WITH_NAME))
         assertEquals(result.statusCode, HttpStatus.NOT_FOUND)
-
     }
 
     @Test
@@ -94,7 +92,6 @@ class HostControllerIntegrationTest {
         assertNotNull(result)
         assertTrue(result.body.toString().contains(NO_HOST_FOUND_WITH_NAME_AND_ADDRESS))
         assertEquals(result.statusCode, HttpStatus.NOT_FOUND)
-
     }
 
     @Test
@@ -103,7 +100,6 @@ class HostControllerIntegrationTest {
         assertNotNull(result)
         assertTrue(result.body.toString().contains("desktop"))
         assertEquals(result.statusCode, HttpStatus.OK)
-
     }
 
     @Test
@@ -112,7 +108,6 @@ class HostControllerIntegrationTest {
         assertNotNull(result)
         assertTrue(result.body.toString().contains("desktop"))
         assertEquals(result.statusCode, HttpStatus.OK)
-
     }
 
     @Test
@@ -221,6 +216,7 @@ class HostControllerIntegrationTest {
 
     @Test
     fun saveOneNormalOperations() {
+
         val hostModel = HostModel(null, "192.168.1.103", "laptop", "nyc")
         val headers = HttpHeaders()
         headers.set("X-COM-PERSIST", "true")
@@ -232,29 +228,9 @@ class HostControllerIntegrationTest {
         assertEquals(resultHostModel.name, hostModel.name)
     }
 
-    @Test
-    fun updateNormalOperations(){
-        hostService.save(HostModel(null, "192.168.1.124", "raspberry-pi", "nyc"))
-        val foundHost = hostService.findByName("raspberry-pi");
-        val id = foundHost.id;
-        val hostModel = HostModel(id, "192.168.1.123", "pfsense", "nyc")
-        val headers = HttpHeaders()
-        headers.set("X-COM-PERSIST", "true")
-        val request: HttpEntity<HostModel> = HttpEntity<HostModel>(hostModel, headers)
-        val result = testRestTemplate.exchange("/api/hosts/".plus(id), HttpMethod.PUT, request, String::class.java)
-        val resultHostModel: HostModel = objectMapper.readValue(result.body ?: throw IllegalStateException())
-        assertNotNull(result)
-        assertEquals(result.statusCode, HttpStatus.OK)
-        assertEquals(hostModel.address, resultHostModel.address)
-        assertEquals(hostModel.name, resultHostModel.name)
-        if (id != null) {
-            hostService.delete(id)
-        }
-
-    }
 
     @Test
-    fun updateNormalOperationsNameAndAddress(){
+    fun updateNormalOperationsNameAndAddressAlias(){
         hostService.save(HostModel(null, "192.168.1.124", "raspberry-pi", "nyc"))
         aliasService.save(AliasModel(null, "finland", listOf()))
         val foundHost = hostService.findByName("raspberry-pi");
@@ -270,6 +246,23 @@ class HostControllerIntegrationTest {
         assertEquals(hostModel.address, resultHostModel.address)
         assertEquals(hostModel.name, resultHostModel.name)
         assertEquals(hostModel.alias, resultHostModel.alias)
+        hostRepository.delete(foundHost)
+        val aliasId = aliasService.findByName("finland").id
+        aliasId?.let { aliasService.delete(it) }
+    }
+    @Test
+    fun updateWithAlreadyExistingNameInDb() {
+        hostService.save(HostModel(null, "192.168.1.124", "raspberry-pi", "nyc"))
+        aliasService.save(AliasModel(null, "finland", listOf()))
+        val foundHost = hostService.findByName("raspberry-pi");
+        val id = foundHost.id;
+        val hostModel = HostModel(id, "192.168.1.123", "desktop", "finland")
+        val headers = HttpHeaders()
+        headers.set("X-COM-PERSIST", "true")
+        val request: HttpEntity<HostModel> = HttpEntity<HostModel>(hostModel, headers)
+        val result = testRestTemplate.exchange("/api/hosts/".plus(id), HttpMethod.PUT, request, String::class.java)
+        assertNotNull(result)
+        assertEquals(result.statusCode, HttpStatus.CONFLICT)
         hostRepository.delete(foundHost)
         val aliasId = aliasService.findByName("finland").id
         aliasId?.let { aliasService.delete(it) }

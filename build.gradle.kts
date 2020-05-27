@@ -1,11 +1,11 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+
 buildscript {
     repositories {
         mavenCentral()
     }
 }
-
 
 plugins {
     id("org.springframework.boot") version "2.3.0.RELEASE" apply false
@@ -27,4 +27,9 @@ subprojects {
     apply {
         plugin("io.spring.dependency-management")
     }
+}
+
+tasks.withType<Test> {
+    systemProperty("EUREKA_CLIENT_ON", "false")
+    useJUnitPlatform()
 }
