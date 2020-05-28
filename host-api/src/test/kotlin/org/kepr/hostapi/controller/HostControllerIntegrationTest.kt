@@ -16,6 +16,7 @@ import org.kepr.hostapi.service.HostService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.client.TestRestTemplate
+import org.springframework.boot.test.web.client.exchange
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
@@ -32,6 +33,9 @@ class HostControllerIntegrationTest {
 
     @Autowired
     lateinit var aliasService: AliasService
+
+    @Autowired
+    lateinit var hostRepository: HostRepository
 
     @Autowired
     lateinit var objectMapper: ObjectMapper
@@ -274,6 +278,70 @@ class HostControllerIntegrationTest {
         savedHost2.id?.let { hostService.delete(it) }
         savedAlias.id?.let { aliasService.delete(it) }
         savedAlias2.id?.let { aliasService.delete(it) }
+    }
+
+    @Test
+    fun updateWithNoMatchingAlias() {
+        val savedAlias = aliasService.save(finlandAlias)
+        val savedAlias2 = aliasService.save(nycAlias)
+        val savedHost = hostService.save(raspberryPi)
+        val savedHost2 = hostService.save(desktopHostModel)
+        val hostModel = HostModel(null, "192.168.1.123", "raspberry-pi", "norway")
+        val headers = HttpHeaders()
+        headers.set("X-COM-PERSIST", "true")
+        val request: HttpEntity<HostModel> = HttpEntity<HostModel>(hostModel, headers)
+        val result = testRestTemplate.exchange("/api/hosts/".plus(savedHost.id), HttpMethod.PUT, request, String::class.java)
+        assertNotNull(result)
+        assertEquals(result.statusCode, HttpStatus.NOT_FOUND)
+        result.body?.contains(NO_ALIAS_FOUND_WITH_NAME.plus("norway"))?.let { assertTrue(it) }
+        savedHost.id?.let { hostService.delete(it) }
+        savedHost2.id?.let { hostService.delete(it) }
+        savedAlias.id?.let { aliasService.delete(it) }
+        savedAlias2.id?.let { aliasService.delete(it) }
+    }
+
+    @Test
+    fun updateWithInvalidIp() {
+        val savedAlias = aliasService.save(finlandAlias)
+        val savedAlias2 = aliasService.save(nycAlias)
+        val savedHost = hostService.save(raspberryPi)
+        val savedHost2 = hostService.save(desktopHostModel)
+        val hostModel = HostModel(null, "192.320.1.123", "raspberry-pi", "finland")
+        val headers = HttpHeaders()
+        headers.set("X-COM-PERSIST", "true")
+        val request: HttpEntity<HostModel> = HttpEntity<HostModel>(hostModel, headers)
+        val result = testRestTemplate.exchange("/api/hosts/".plus(savedHost.id), HttpMethod.PUT, request, String::class.java)
+        assertNotNull(result)
+        assertEquals(result.statusCode, HttpStatus.BAD_REQUEST)
+        result.body?.contains(NOT_VALID_IPV4_ADDRESS)?.let { assertTrue(it) }
+        savedHost.id?.let { hostService.delete(it) }
+        savedHost2.id?.let { hostService.delete(it) }
+        savedAlias.id?.let { aliasService.delete(it) }
+        savedAlias2.id?.let { aliasService.delete(it) }
+    }
+
+    @Test
+    fun deleteNormalOps() {
+        val savedAlias = aliasService.save(nycAlias)
+        val savedHost = hostService.save(desktopHostModel)
+        val headers = HttpHeaders()
+        headers.set("X-COM-PERSIST", "true")
+        val request: HttpEntity<HostModel> = HttpEntity<HostModel>(headers)
+        val result = testRestTemplate.exchange("/api/hosts/".plus(savedHost.id), HttpMethod.DELETE, request, String::class.java)
+        assertEquals(result.statusCode, HttpStatus.OK)
+        assertFalse(hostRepository.existsByName("desktop"))
+        savedAlias.id?.let { aliasService.delete(it) }
+    }
+
+    @Test
+    fun deleteNoneFound() {
+        val headers = HttpHeaders()
+        headers.set("X-COM-PERSIST", "true")
+        val request: HttpEntity<HostModel> = HttpEntity<HostModel>(headers)
+        val result = testRestTemplate.exchange("/api/hosts/".plus(99), HttpMethod.DELETE, request, String::class.java)
+        assertEquals(result.statusCode, HttpStatus.NOT_FOUND)
+        println(result.body)
+        result.body?.contains(NO_HOST_FOUND_WITH_ID)?.let { assertTrue(it) }
     }
 
 }

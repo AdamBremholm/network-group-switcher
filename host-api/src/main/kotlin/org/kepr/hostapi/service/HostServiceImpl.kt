@@ -53,6 +53,7 @@ class HostServiceImpl(@Autowired private val hostRepository: HostRepository, @Au
         val foundAlias = aliasRepository.findAliasByName(hostModel.alias)
         val foundHostOptional = hostRepository.findById(id)
         validateForUpdate(hostModel, foundHostOptional.orElse(null), foundAlias.orElse(null))
+        validateAddress(hostModel)
         val hostToUpdate = foundHostOptional.get()
         if(hostModel.address.isNotBlank())
             hostToUpdate.address = hostModel.address
@@ -65,8 +66,9 @@ class HostServiceImpl(@Autowired private val hostRepository: HostRepository, @Au
     }
 
     override fun delete(id: Long) {
-        val foundHost = hostRepository.findById(id)
-        foundHost.ifPresent{ hostRepository.delete(it)}
+        val foundHostOpt = hostRepository.findById(id)
+        val foundHost = foundHostOpt.orElseThrow{ResponseStatusException(HttpStatus.NOT_FOUND, NO_HOST_FOUND_WITH_ID.plus(id))}
+        hostRepository.delete(foundHost)
     }
 
     private fun validateForSave(hostModel: HostModel, foundHost: Host?, foundAlias: Alias?) {
