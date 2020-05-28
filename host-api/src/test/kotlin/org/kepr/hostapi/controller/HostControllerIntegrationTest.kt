@@ -28,12 +28,6 @@ class HostControllerIntegrationTest {
     lateinit var testRestTemplate: TestRestTemplate
 
     @Autowired
-    lateinit var hostRepository: HostRepository
-
-    @Autowired
-    lateinit var aliasRepository: AliasRepository
-
-    @Autowired
     lateinit var hostService: HostService
 
     @Autowired
@@ -41,9 +35,6 @@ class HostControllerIntegrationTest {
 
     @Autowired
     lateinit var objectMapper: ObjectMapper
-
-    @Autowired
-    lateinit var truncateDatabaseService: DatabaseCleanupService
 
     lateinit var nycAlias : AliasModel
     lateinit var stockholmAlias : AliasModel
