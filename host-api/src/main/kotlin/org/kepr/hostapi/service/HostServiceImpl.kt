@@ -1,9 +1,9 @@
 package org.kepr.hostapi.service
 
 import org.apache.commons.validator.routines.InetAddressValidator
+import org.kepr.hostapi.config.*
 import org.kepr.hostapi.data.Alias
 import org.kepr.hostapi.data.Host
-import org.kepr.hostapi.exception.*
 import org.kepr.hostapi.model.HostModel
 import org.kepr.hostapi.repository.AliasRepository
 import org.kepr.hostapi.repository.HostRepository

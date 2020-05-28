@@ -1,4 +1,4 @@
-package org.kepr.hostapi.exception
+package org.kepr.hostapi.config
 
 const val NO_ALIAS_FOUND_WITH_NAME = "no alias found with name: "
 const val NO_ALIAS_FOUND_WITH_ID = "no alias found with id: "

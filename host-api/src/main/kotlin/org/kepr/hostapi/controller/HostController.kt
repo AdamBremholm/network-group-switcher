@@ -1,7 +1,7 @@
 package org.kepr.hostapi.controller
 
 import io.swagger.annotations.Api
-import org.kepr.hostapi.exception.NON_SUPPORTED_QUERY_PARAM
+import org.kepr.hostapi.config.NON_SUPPORTED_QUERY_PARAM
 import org.kepr.hostapi.model.HostModel
 import org.kepr.hostapi.model.HostModel.Companion.toModel
 import org.kepr.hostapi.service.HostService
