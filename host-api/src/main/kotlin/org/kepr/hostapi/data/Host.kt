@@ -11,7 +11,7 @@ data class Host(@Column(unique=true) @NotBlank var address: String,
                 @Column(unique=true) @NotBlank var name: String, @ManyToOne(fetch = FetchType.LAZY) @Cascade(CascadeType.ALL)
 var alias: Alias? = null) {
 
-    @Id @GeneratedValue val id: Long? = null
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY) val id: Long? = null
 
     override fun toString(): String {
         return "name: ${this.name}, address: ${this.address}, alias: ${this.alias?.name}"

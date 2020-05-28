@@ -48,8 +48,6 @@ dependencyManagement {
 }
 
 tasks.withType<Test> {
-    environment["EUREKA_CLIENT_ON"] = System.getenv("EUREKA_CLIENT_ON")
-    environment["HOST_API_PORT"] = System.getenv("HOST_API_PORT")
     useJUnitPlatform()
 }
 

@@ -9,7 +9,7 @@ import javax.validation.constraints.NotBlank
 data class Alias(@Column(unique=true) @NotBlank var name: String, @OneToMany(mappedBy = "alias", fetch = FetchType.LAZY) @Cascade(CascadeType.ALL)
 var hosts: MutableList<Host>) {
 
-    @Id @GeneratedValue val id: Long? = null
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY) val id: Long? = null
 
     override fun toString(): String {
        return "name: ${this.name}, hosts = ${this.hosts.forEach { it.name }}"

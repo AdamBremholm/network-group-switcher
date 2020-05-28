@@ -2,10 +2,11 @@ package org.kepr.hostapi.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import org.junit.BeforeClass
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import org.kepr.hostapi.data.Alias
 import org.kepr.hostapi.exception.*
 import org.kepr.hostapi.model.AliasModel
@@ -17,21 +18,14 @@ import org.kepr.hostapi.service.HostService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.client.TestRestTemplate
-import org.springframework.cloud.netflix.eureka.EnableEurekaClient
-import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
-import org.springframework.test.context.ActiveProfiles
-import org.springframework.test.context.TestPropertySource
-import org.springframework.test.context.junit.jupiter.SpringExtension
-
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ExtendWith(SpringExtension::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class HostControllerIntegrationTest : AbstractIntegrationTest() {
+class HostControllerIntegrationTest {
     @Autowired
     lateinit var testRestTemplate: TestRestTemplate
 
@@ -50,6 +44,9 @@ class HostControllerIntegrationTest : AbstractIntegrationTest() {
     @Autowired
     lateinit var objectMapper: ObjectMapper
 
+    @Autowired
+    lateinit var truncateDatabaseService: DatabaseCleanupService
+
     val nycAlias = Alias("nyc", mutableListOf())
     val stockholmAlias = Alias("stockholm", mutableListOf())
     val desktopHostModel = HostModel(null, "192.168.1.102", "desktop", "nyc")
@@ -58,7 +55,9 @@ class HostControllerIntegrationTest : AbstractIntegrationTest() {
     fun populateDB() {
         aliasRepository.save(nycAlias)
         aliasRepository.save(stockholmAlias)
-        hostService.save(desktopHostModel)
+        hostService.save(HostModel(null, "192.168.1.102", "desktop", "nyc"))
+        hostService.save(HostModel(null, "192.168.1.124", "raspberry-pi", "nyc"))
+        aliasService.save(AliasModel(null, "finland", listOf()))
     }
 
     @Test
@@ -125,16 +124,6 @@ class HostControllerIntegrationTest : AbstractIntegrationTest() {
         assertNotNull(result)
         assertTrue(result.body.toString().contains(NO_HOST_FOUND_WITH_ID))
         assertEquals(result.statusCode, HttpStatus.NOT_FOUND)
-    }
-
-    @Test
-    fun findOne_ById() {
-        val id = 3L
-        val hostModelWithId = desktopHostModel.copy(id = id)
-        val result = testRestTemplate.getForEntity("/api/hosts/$id", String::class.java)
-        assertNotNull(result)
-        assertEquals(result.statusCode, HttpStatus.OK)
-        assertEquals(result.body, objectMapper.writeValueAsString(hostModelWithId))
     }
 
     @Test
@@ -216,7 +205,6 @@ class HostControllerIntegrationTest : AbstractIntegrationTest() {
 
     @Test
     fun saveOneNormalOperations() {
-
         val hostModel = HostModel(null, "192.168.1.103", "laptop", "nyc")
         val headers = HttpHeaders()
         headers.set("X-COM-PERSIST", "true")
@@ -230,11 +218,9 @@ class HostControllerIntegrationTest : AbstractIntegrationTest() {
 
 
     @Test
-    fun updateNormalOperationsNameAndAddressAlias(){
-        hostService.save(HostModel(null, "192.168.1.124", "raspberry-pi", "nyc"))
-        aliasService.save(AliasModel(null, "finland", listOf()))
-        val foundHost = hostService.findByName("raspberry-pi");
-        val id = foundHost.id;
+    fun updateNormalOperationsNameAndAddressAlias() {
+        val foundHost = hostService.findByName("raspberry-pi")
+        val id = foundHost.id
         val hostModel = HostModel(id, "192.168.1.123", "pfsense", "finland")
         val headers = HttpHeaders()
         headers.set("X-COM-PERSIST", "true")
@@ -246,16 +232,14 @@ class HostControllerIntegrationTest : AbstractIntegrationTest() {
         assertEquals(hostModel.address, resultHostModel.address)
         assertEquals(hostModel.name, resultHostModel.name)
         assertEquals(hostModel.alias, resultHostModel.alias)
-        hostRepository.delete(foundHost)
-        val aliasId = aliasService.findByName("finland").id
-        aliasId?.let { aliasService.delete(it) }
+
     }
+
     @Test
     fun updateWithAlreadyExistingNameInDb() {
-        hostService.save(HostModel(null, "192.168.1.124", "raspberry-pi", "nyc"))
-        aliasService.save(AliasModel(null, "finland", listOf()))
-        val foundHost = hostService.findByName("raspberry-pi");
-        val id = foundHost.id;
+
+        val foundHost = hostService.findByName("raspberry-pi")
+        val id = foundHost.id
         val hostModel = HostModel(id, "192.168.1.123", "desktop", "finland")
         val headers = HttpHeaders()
         headers.set("X-COM-PERSIST", "true")
@@ -263,9 +247,6 @@ class HostControllerIntegrationTest : AbstractIntegrationTest() {
         val result = testRestTemplate.exchange("/api/hosts/".plus(id), HttpMethod.PUT, request, String::class.java)
         assertNotNull(result)
         assertEquals(result.statusCode, HttpStatus.CONFLICT)
-        hostRepository.delete(foundHost)
-        val aliasId = aliasService.findByName("finland").id
-        aliasId?.let { aliasService.delete(it) }
     }
 
 }

@@ -16,7 +16,6 @@ import kotlin.reflect.full.findAnnotation
  * @author Sebastien Dubois
  */
 @Service
-@Profile("test")
 class DatabaseCleanupService @Autowired constructor(private val entityManager: EntityManager) : InitializingBean {
     private lateinit var tableNames: List<String>
 

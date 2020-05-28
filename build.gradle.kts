@@ -30,6 +30,5 @@ subprojects {
 }
 
 tasks.withType<Test> {
-    systemProperty("EUREKA_CLIENT_ON", "false")
     useJUnitPlatform()
 }
