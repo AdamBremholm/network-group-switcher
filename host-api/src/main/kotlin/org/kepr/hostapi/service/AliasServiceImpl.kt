@@ -9,9 +9,11 @@ import org.kepr.hostapi.repository.HostRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
+import org.springframework.validation.annotation.Validated
 import org.springframework.web.server.ResponseStatusException
 
 @Service
+@Validated
 class AliasServiceImpl(@Autowired private val aliasRepository: AliasRepository, @Autowired private val hostRepository: HostRepository) : AliasService {
     override fun findAll(): List<Alias> {
         return aliasRepository.findAll()
@@ -53,8 +55,6 @@ class AliasServiceImpl(@Autowired private val aliasRepository: AliasRepository, 
     }
 
     private fun validateForSave(aliasModel: AliasModel, dbHosts: List<Host>) {
-        if(aliasModel.name.isBlank())
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST, EMPTY_NAME_NOT_ALLOWED)
         if (aliasRepository.existsByName(aliasModel.name))
             throw ResponseStatusException(HttpStatus.CONFLICT, ALIAS_NAME_ALREADY_EXISTS.plus(aliasModel.name))
         if (dbHosts.size != aliasModel.hosts.size) {

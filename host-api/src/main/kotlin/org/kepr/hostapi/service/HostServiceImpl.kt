@@ -33,7 +33,6 @@ class HostServiceImpl(@Autowired private val hostRepository: HostRepository, @Au
     }
 
     override fun save(hostModel: HostModel): Host {
-        checkForBlanks(hostModel)
         validateAddress(hostModel)
         val foundAlias = aliasRepository.findAliasByName(hostModel.alias)
         val foundHost = hostRepository.findHostByNameOrAddress(hostModel.name, hostModel.address)
@@ -84,14 +83,6 @@ class HostServiceImpl(@Autowired private val hostRepository: HostRepository, @Au
 
     }
 
-    private fun checkForBlanks(hostModel: HostModel) {
-        var errorMessage = ""
-        if (hostModel.name.isBlank()) errorMessage = EMPTY_NAME_NOT_ALLOWED
-        if (hostModel.alias.isBlank()) errorMessage = errorMessage.plus(EMPTY_ALIAS_NOT_ALLOWED)
-
-        if (errorMessage.isNotEmpty())
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST, errorMessage)
-    }
 
     private fun validateForUpdate(hostModel: HostModel, foundHost: Host?, foundAlias: Alias?) {
         var notFoundErrorMessage = ""
