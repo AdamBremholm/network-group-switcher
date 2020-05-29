@@ -17,6 +17,7 @@ interface HostRepository : JpaRepository<Host, Long> {
     fun findHostById(id : Long) : Optional<Host>
 
     fun findHostByAddress(address: String) : Optional<Host>
+    fun findHostsByAliasName(aliasName: String) : MutableList<Host>
     fun findHostsByNameIn(names : List<String>) : MutableList<Host>
     fun findHostByNameOrAddress(name : String, address : String) : Optional<Host>
     fun findHostByNameAndAddress(name : String, address : String) : Optional<Host>

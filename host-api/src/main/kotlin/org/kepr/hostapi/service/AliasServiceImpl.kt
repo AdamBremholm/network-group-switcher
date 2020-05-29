@@ -29,23 +29,19 @@ class AliasServiceImpl(@Autowired private val aliasRepository: AliasRepository, 
     override fun save(aliasModel: AliasModel): Alias {
         val dbHosts = hostRepository.findHostsByNameIn(aliasModel.hosts)
         validateForSave(aliasModel, dbHosts)
-        return aliasRepository.save(Alias(aliasModel.name, dbHosts))
+        return aliasRepository.save(Alias(aliasModel.name!!, dbHosts))
     }
 
     override fun update(aliasModel: AliasModel, id: Long): Alias {
-        val foundAliasOptional = aliasRepository.findById(id)
-        if (foundAliasOptional.isEmpty) throw IllegalArgumentException(NO_ALIAS_FOUND_WITH_ID.plus(id))
-        foundAliasOptional.ifPresent{alias ->
-            run {
-                if (aliasModel.name.isNotBlank())
-                    alias.name = aliasModel.name
-                if (aliasModel.hosts.isNotEmpty())
-                    alias.hosts = hostRepository.findHostsByNameIn(aliasModel.hosts)
+        val foundAlias = aliasRepository.findById(id).orElseThrow {ResponseStatusException(HttpStatus.NOT_FOUND, NO_ALIAS_FOUND_WITH_ID.plus(id))}
+        val dbHosts = hostRepository.findHostsByNameIn(aliasModel.hosts)
+        validateForUpdate(aliasModel, foundAlias, dbHosts)
+        if (aliasModel.name.isNotBlank())
+            foundAlias.name = aliasModel.name
+        if (aliasModel.hosts.isNotEmpty())
+            foundAlias.hosts = dbHosts
 
-                aliasRepository.save(alias)
-            }
-        }
-        return foundAliasOptional.get()
+       return aliasRepository.save(foundAlias)
     }
 
     override fun delete(id: Long) {
@@ -63,4 +59,14 @@ class AliasServiceImpl(@Autowired private val aliasRepository: AliasRepository, 
 
     }
 
+    private fun validateForUpdate(aliasModel: AliasModel, foundAlias : Alias, dbHosts: List<Host>) {
+        if (aliasModel.name !=  foundAlias.name && aliasRepository.existsByName(aliasModel.name))
+            throw ResponseStatusException(HttpStatus.CONFLICT, ALIAS_NAME_ALREADY_EXISTS.plus(aliasModel.name))
+        if (allRequestedHostsAreNotInDb(dbHosts, aliasModel.hosts)) {
+            val diffList = aliasModel.hosts.minus(dbHosts.map { it.name })
+            throw ResponseStatusException(HttpStatus.NOT_FOUND, THESE_HOSTS_WERE_NOT_FOUND.plus(diffList))
+        }
+
+    }
+    private fun allRequestedHostsAreNotInDb(dbHosts: List<Host>, requestedHost : List<String>) : Boolean =  dbHosts.size != requestedHost.size
 }

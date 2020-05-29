@@ -10,7 +10,7 @@ import javax.validation.constraints.NotBlank
 import javax.validation.constraints.Size
 
 @Entity(name="host")
-data class Host(@Column(unique=true)  var address: String,
+ class Host(@Column(unique=true)  var address: String,
                 @Column(unique=true)  var name: String, @ManyToOne(fetch = FetchType.LAZY) @Cascade(CascadeType.PERSIST, CascadeType.MERGE)
  var alias: Alias? = null) {
 

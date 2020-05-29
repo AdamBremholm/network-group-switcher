@@ -46,7 +46,7 @@ class AliasController(@Autowired private val aliasService : AliasService) {
     fun save(@Valid @RequestBody aliasModel : AliasModel) : AliasModel = toModel(aliasService.save(aliasModel))
 
     @PutMapping("aliases/{id}")
-    fun update(@PathVariable id: Long, hostModel : AliasModel) : AliasModel = toModel(aliasService.update(hostModel, id))
+    fun update(@PathVariable id: Long, @RequestBody aliasModel : AliasModel) : AliasModel = toModel(aliasService.update(aliasModel, id))
 
     @DeleteMapping("aliases/{id}")
     fun delete(@PathVariable id : Long) = aliasService.delete(id)

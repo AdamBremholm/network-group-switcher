@@ -4,13 +4,23 @@ import org.hibernate.annotations.Cascade
 import org.hibernate.annotations.CascadeType
 import javax.persistence.*
 
+
 @Entity(name="alias")
-data class Alias(@Column(unique=true)  var name: String, @OneToMany(mappedBy = "alias", fetch = FetchType.LAZY) @Cascade(CascadeType.PERSIST, CascadeType.MERGE)
-var hosts: MutableList<Host>) {
+ class Alias(@Column(unique=true)  var name: String, @OneToMany(mappedBy = "alias", fetch = FetchType.LAZY) @Cascade(CascadeType.PERSIST, CascadeType.MERGE)
+var hosts: MutableList<Host>?) {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY) val id: Long? = null
 
     override fun toString(): String {
        return "name: ${this.name}}"
+    }
+
+    @PreRemove
+    private fun removeAliasLink() {
+        if (hosts!=null) {
+            for (host in hosts!!) {
+                host.alias = null
+            }
+        }
     }
 }
