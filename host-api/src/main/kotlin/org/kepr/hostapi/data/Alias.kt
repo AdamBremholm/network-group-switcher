@@ -7,7 +7,7 @@ import javax.persistence.*
 
 @Entity(name="alias")
  class Alias(@Column(unique=true)  var name: String, @OneToMany(mappedBy = "alias", fetch = FetchType.LAZY) @Cascade(CascadeType.PERSIST, CascadeType.MERGE)
-var hosts: MutableList<Host>?) {
+var hosts: MutableSet<Host>) {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY) val id: Long? = null
 
@@ -15,12 +15,5 @@ var hosts: MutableList<Host>?) {
        return "name: ${this.name}}"
     }
 
-    @PreRemove
-    private fun removeAliasLink() {
-        if (hosts!=null) {
-            for (host in hosts!!) {
-                host.alias = null
-            }
-        }
-    }
+
 }

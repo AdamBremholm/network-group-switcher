@@ -208,14 +208,12 @@ class AliasControllerIntegrationTest {
     @Test
     fun deleteNormalOps() {
         val savedAlias = aliasService.save(nycAlias)
-        val savedHost = hostService.save(desktopHostModel)
+        hostService.save(desktopHostModel)
         val headers = HttpHeaders()
         headers.set("X-COM-PERSIST", "true")
         val request: HttpEntity<HostModel> = HttpEntity<HostModel>(headers)
         println(aliasService.findAll())
-        val result = testRestTemplate.exchange(ALIAS_API_PATH.plus("/").plus(savedAlias.id), HttpMethod.DELETE, request, String::class.java)
-        println(aliasService.findAll())
-        println(hostService.findAll())
+        testRestTemplate.exchange(ALIAS_API_PATH.plus("/").plus(savedAlias.id), HttpMethod.DELETE, request, String::class.java)
         assertFalse(aliasRepository.existsByName("nyc"))
         assertFalse(hostRepository.existsByName("desktop"))
     }
@@ -224,7 +222,7 @@ class AliasControllerIntegrationTest {
     fun deleteNoneFound() {
         val headers = HttpHeaders()
         headers.set("X-COM-PERSIST", "true")
-        val request: HttpEntity<HostModel> = HttpEntity<HostModel>(headers)
+        val request: HttpEntity<AliasModel> = HttpEntity<AliasModel>(headers)
         val result = testRestTemplate.exchange(ALIAS_API_PATH.plus("/").plus(99), HttpMethod.DELETE, request, String::class.java)
         assertEquals(result.statusCode, HttpStatus.NOT_FOUND)
         println(result.body)

@@ -13,7 +13,8 @@ interface AliasRepository : JpaRepository<Alias, Long> {
 
     @Query(value = "SELECT a FROM alias a LEFT JOIN FETCH a.hosts WHERE a.name = :name")
     fun findAliasByName(@Param("name") name : String) : Optional<Alias>
-
+    @Query(value = "SELECT a FROM alias a LEFT JOIN FETCH a.hosts WHERE a.id = :id")
+    fun findAliasById(@Param("id") id : Long) : Optional<Alias>
 
     fun existsByName(name: String) : Boolean
 }
