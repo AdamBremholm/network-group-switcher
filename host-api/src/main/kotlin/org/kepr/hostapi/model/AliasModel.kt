@@ -4,9 +4,8 @@ import org.kepr.hostapi.config.EMPTY_NAME_NOT_ALLOWED
 import org.kepr.hostapi.data.Alias
 import java.lang.IllegalStateException
 import javax.validation.constraints.NotBlank
-import javax.validation.constraints.Size
 
-data class AliasModel(val id: Long?, @field:NotBlank(message = EMPTY_NAME_NOT_ALLOWED) val name: String, val hosts: List<String>) {
+data class AliasModel(val id: Long?, @field:NotBlank(message = EMPTY_NAME_NOT_ALLOWED) val name: String, val hosts: List<String> = mutableListOf()) {
 
     companion object {
         fun toModel(alias: Alias): AliasModel {

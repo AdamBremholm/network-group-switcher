@@ -13,7 +13,6 @@ import org.springframework.validation.annotation.Validated
 import org.springframework.web.server.ResponseStatusException
 
 @Service
-@Validated
 class AliasServiceImpl(@Autowired private val aliasRepository: AliasRepository, @Autowired private val hostRepository: HostRepository) : AliasService {
     override fun findAll(): List<Alias> {
         return aliasRepository.findAll()

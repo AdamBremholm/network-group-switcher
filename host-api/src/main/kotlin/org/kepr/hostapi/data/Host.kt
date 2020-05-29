@@ -10,9 +10,9 @@ import javax.validation.constraints.NotBlank
 import javax.validation.constraints.Size
 
 @Entity(name="host")
-data class Host(@Column(unique=true) @field:NotBlank(message = EMPTY_ADDRESS_NOT_ALLOWED) var address: String,
-                @Column(unique=true) @field:NotBlank(message = EMPTY_NAME_NOT_ALLOWED) var name: String, @ManyToOne(fetch = FetchType.LAZY) @Cascade(CascadeType.PERSIST, CascadeType.MERGE)
-@field:NotBlank(message = EMPTY_ALIAS_NOT_ALLOWED) var alias: Alias? = null) {
+data class Host(@Column(unique=true)  var address: String,
+                @Column(unique=true)  var name: String, @ManyToOne(fetch = FetchType.LAZY) @Cascade(CascadeType.PERSIST, CascadeType.MERGE)
+ var alias: Alias? = null) {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY) val id: Long? = null
 

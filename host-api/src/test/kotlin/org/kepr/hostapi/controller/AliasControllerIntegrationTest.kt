@@ -112,6 +112,18 @@ class AliasControllerIntegrationTest {
         assertTrue(result.body.toString().contains(EMPTY_NAME_NOT_ALLOWED))
         assertEquals(result.statusCode, HttpStatus.BAD_REQUEST)
     }
+    @Test
+    fun saveOne_Allows_no_HostList() {
+        val aliasModel = AliasModel(null, "new-name")
+        val headers = HttpHeaders()
+        headers.set("X-COM-PERSIST", "true")
+        val request: HttpEntity<AliasModel> = HttpEntity<AliasModel>(aliasModel, headers)
+        val result = testRestTemplate.postForEntity(ALIAS_API_PATH, request, String::class.java)
+        val resultAliasModel: AliasModel = objectMapper.readValue(result.body ?: throw IllegalStateException())
+        assertEquals(result.statusCode, HttpStatus.OK)
+        assertEquals(resultAliasModel.name, aliasModel.name)
+        resultAliasModel.id?.let { aliasService.delete(it) }
+    }
 
     @Test
     fun saveOne_Throws_BadRequestException_On_Hosts_That_Does_Not_Exists() {
@@ -120,8 +132,8 @@ class AliasControllerIntegrationTest {
         headers.set("X-COM-PERSIST", "true")
         val request: HttpEntity<AliasModel> = HttpEntity<AliasModel>(aliasModel, headers)
         val result = testRestTemplate.postForEntity(ALIAS_API_PATH, request, String::class.java)
+        assertEquals(result.statusCode, HttpStatus.NOT_FOUND)
         assertTrue(result.body.toString().contains(NO_HOST_FOUND_WITH_NAME))
-        assertEquals(result.statusCode, HttpStatus.BAD_REQUEST)
     }
 
     @Test
