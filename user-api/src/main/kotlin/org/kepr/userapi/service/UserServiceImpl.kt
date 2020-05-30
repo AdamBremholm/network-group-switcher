@@ -2,7 +2,6 @@ package org.kepr.userapi.service
 
 import org.kepr.userapi.config.*
 import org.kepr.userapi.data.User
-import org.kepr.userapi.model.UserModel
 import org.kepr.userapi.model.UserModel.Companion.toModel
 import org.kepr.userapi.repository.UserRepository
 import org.springframework.beans.factory.annotation.Autowired
@@ -26,11 +25,11 @@ class UserServiceImpl(@Autowired private val userRepository: UserRepository) : U
         return userRepository.findUserByUserName(userName).orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, NO_USER_FOUND_WITH_USERNAME.plus(userName) ) }
     }
     override fun findByParams(queryParams : MutableMap<String, String>) : Any{
-
         return if (queryParams.isEmpty())
             toModel(findAll())
         else {
             checkForNotAllowedKeysInQuery(queryParams)
+            fixQueryParams(queryParams)
                 if (queryParams.containsKey("username") || queryParams.containsKey("email"))
                     toModel(userRepository.findUserByUserNameOrEmail(queryParams["username"]?:"", queryParams["email"]?:""))
 
@@ -54,7 +53,12 @@ class UserServiceImpl(@Autowired private val userRepository: UserRepository) : U
     override fun save(user: User): User {
         val optFoundUser = userRepository.findUserByUserNameOrEmail(user.userName, user.email)
         validateUserForSave(user, optFoundUser)
+        validatePassword(user)
         return userRepository.save(user)
+    }
+
+    private fun validatePassword(user: User) {
+        TODO("Not yet implemented")
     }
 
     private fun validateUserForSave(user: User, optFoundUser: Optional<User>) {
@@ -69,16 +73,31 @@ class UserServiceImpl(@Autowired private val userRepository: UserRepository) : U
         }
     }
     override fun update(user: User, id : Long): User {
-        validateUserForUpdate(user)
+        val foundUser = findById(id)
+        validateUserForUpdate(user, foundUser)
+        if(user.userName.isNotBlank())
+            foundUser.userName = foundUser.userName
+        if(user.email.isNotBlank())
+            foundUser.email = foundUser.email
+        if(user.password.isNotBlank()) {
+            validatePassword(user)
+        }
+
         return userRepository.save(user)
     }
 
-    private fun validateUserForUpdate(user: User) {
-        TODO("Not yet implemented")
+    private fun validateUserForUpdate(user: User, foundUser: User) {
+        val errorMessage = ""
+        if (user.userName != foundUser.userName && userRepository.existsByUserName(user.userName))
+            errorMessage.plus(USERNAME_ALREADY_EXISTS.plus(foundUser.userName))
+        if (user.email != foundUser.email && userRepository.existsByEmail(user.email))
+            errorMessage.plus(USER_EMAIL_ALREADY_EXISTS).plus(foundUser.email)
+        throw ResponseStatusException(HttpStatus.CONFLICT, errorMessage.trim())
     }
 
     override fun delete(id: Long) {
-        TODO("Not yet implemented")
+      val userToDelete = findById(id)
+      userRepository.delete(userToDelete)
     }
 
 }
