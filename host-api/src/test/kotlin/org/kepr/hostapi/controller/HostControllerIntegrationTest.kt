@@ -38,11 +38,11 @@ class HostControllerIntegrationTest {
     @Autowired
     lateinit var objectMapper: ObjectMapper
 
-    lateinit var nycAlias : AliasModel
-    lateinit var stockholmAlias : AliasModel
-    lateinit var finlandAlias : AliasModel
-    lateinit var desktopHostModel : HostModel
-    lateinit var raspberryPi : HostModel
+    lateinit var nycAlias: AliasModel
+    lateinit var stockholmAlias: AliasModel
+    lateinit var finlandAlias: AliasModel
+    lateinit var desktopHostModel: HostModel
+    lateinit var raspberryPi: HostModel
 
     @BeforeAll
     fun setup() {
@@ -139,12 +139,12 @@ class HostControllerIntegrationTest {
     fun saveOne_Throws_ConflictException_When_Same_Ip_Exists() {
         val savedAlias = aliasService.save(nycAlias)
         val savedHost = hostService.save(desktopHostModel)
-       val hostModel = HostModel(null, "192.168.1.102", "new-device", "nyc")
+        val hostModel = HostModel(null, "192.168.1.102", "new-device", "nyc")
         val headers = HttpHeaders()
         headers.set("X-COM-PERSIST", "true")
         val request: HttpEntity<HostModel> = HttpEntity<HostModel>(hostModel, headers)
         val result = testRestTemplate.postForEntity(HOST_API_PATH, request, String::class.java)
-       assertEquals(result.statusCode, HttpStatus.CONFLICT)
+        assertEquals(result.statusCode, HttpStatus.CONFLICT)
         savedHost.id?.let { hostService.delete(it) }
         savedAlias.id?.let { aliasService.delete(it) }
 
@@ -175,6 +175,17 @@ class HostControllerIntegrationTest {
     @Test
     fun saveOne_Throws_BadRequestException_On_Blank_String_In_Address() {
         val hostModel = HostModel(null, "", "new-device", "nyc")
+        val headers = HttpHeaders()
+        headers.set("X-COM-PERSIST", "true")
+        val request: HttpEntity<HostModel> = HttpEntity<HostModel>(hostModel, headers)
+        val result = testRestTemplate.postForEntity(HOST_API_PATH, request, String::class.java)
+        assertTrue(result.body.toString().contains(EMPTY_ADDRESS_NOT_ALLOWED))
+        assertEquals(result.statusCode, HttpStatus.BAD_REQUEST)
+    }
+
+    @Test
+    fun saveOne_Throws_BadRequestException_On_Invalid_IPV4_Address() {
+        val hostModel = HostModel(null, "192.325.41.2", "new-device", "nyc")
         val headers = HttpHeaders()
         headers.set("X-COM-PERSIST", "true")
         val request: HttpEntity<HostModel> = HttpEntity<HostModel>(hostModel, headers)
@@ -241,9 +252,10 @@ class HostControllerIntegrationTest {
     @Test
     fun updateNormalOperationsNameAndAddressAlias() {
         val savedAlias = aliasService.save(finlandAlias)
+        val savedNycAlias = aliasService.save(nycAlias)
         val savedHost = hostService.save(raspberryPi)
         val id = savedHost.id
-        val hostModel = HostModel(null, "192.168.1.123", "pfsense", "finland")
+        val hostModel = HostModel(null, "192.168.1.123", "pfsense", "nyc")
         val headers = HttpHeaders()
         headers.set("X-COM-PERSIST", "true")
         val request: HttpEntity<HostModel> = HttpEntity<HostModel>(hostModel, headers)
@@ -254,8 +266,10 @@ class HostControllerIntegrationTest {
         assertEquals(hostModel.address, resultHostModel.address)
         assertEquals(hostModel.name, resultHostModel.name)
         assertEquals(hostModel.alias, resultHostModel.alias)
+        assertTrue(aliasService.findByName("finland").hosts.size == 0)
         id?.let { hostService.delete(it) }
         savedAlias.id?.let { aliasService.delete(it) }
+        savedNycAlias.id?.let { aliasService.delete(it) }
 
     }
 
@@ -328,6 +342,8 @@ class HostControllerIntegrationTest {
         val result = testRestTemplate.exchange(HOST_API_PATH.plus("/").plus(savedHost.id), HttpMethod.DELETE, request, String::class.java)
         assertEquals(result.statusCode, HttpStatus.OK)
         assertFalse(hostRepository.existsByName("desktop"))
+        val updatedNYC = aliasService.findByName("nyc")
+        assertTrue(updatedNYC.hosts.size == 0)
         savedAlias.id?.let { aliasService.delete(it) }
     }
 

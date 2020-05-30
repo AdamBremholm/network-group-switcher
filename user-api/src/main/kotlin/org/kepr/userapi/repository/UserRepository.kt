@@ -9,4 +9,5 @@ import java.util.*
 interface UserRepository: JpaRepository<User, Long> {
     fun findUserByUserName(userName: String) : Optional<User>
     fun findUserByEmail(email: String) : Optional<User>
+    fun findUserByUserNameOrEmail(username:String, email:String) : Optional<User>
 }

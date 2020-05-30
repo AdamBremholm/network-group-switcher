@@ -22,10 +22,10 @@ class AliasController(@Autowired private val aliasService : AliasService) {
     @GetMapping("aliases")
     fun findWithQueryParams(@RequestParam allParams: Map<String, String>): Any {
         return if (allParams.isEmpty())
-            AliasModel.toModel(aliasService.findAll())
+            toModel(aliasService.findAll())
         else {
             checkForNotAllowedKeysInQuery(allParams)
-            if (allParams.containsKey("name")) AliasModel.Companion.toModel(aliasService.findByName(allParams["name"]
+            if (allParams.containsKey("name")) toModel(aliasService.findByName(allParams["name"]
                     ?: ""))
             else throw ResponseStatusException(HttpStatus.BAD_REQUEST, "could not parse query params, please check the docs")
         }
