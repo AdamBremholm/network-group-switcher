@@ -35,13 +35,13 @@ class UserServiceImpl(@Autowired private val userRepository: UserRepository) : U
             fixQueryParams(queryParams)
             if (queryParams.containsKey("username") || queryParams.containsKey("email"))
                 toModel(userRepository.findUserByUserNameOrEmail(queryParams["username"] ?: "", queryParams["email"]
-                        ?: ""))
+                        ?: "").orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, NO_USER_FOUND_WITH_USERNAME_OR_EMAIL.plus(queryParams["username"]).plus(queryParams["email"]))})
             else throw ResponseStatusException(HttpStatus.BAD_REQUEST, "could not parse query params, please check the docs")
         }
     }
 
     private fun checkForNotAllowedKeysInQuery(queryParams: MutableMap<String, String>) {
-        val allowedKeys = setOf("email", "username, userName")
+        val allowedKeys = setOf("email", "username", "userName")
         queryParams.keys.forEach {
             if (!allowedKeys.contains(it))
                 throw ResponseStatusException(HttpStatus.BAD_REQUEST, NON_SUPPORTED_QUERY_PARAM.plus(it))
@@ -94,12 +94,16 @@ class UserServiceImpl(@Autowired private val userRepository: UserRepository) : U
     }
 
     private fun validateUserForUpdate(user: UserModelIn, foundUser: User) {
-        val errorMessage = ""
+        var errorMessage = ""
         if (user.userName != foundUser.userName && userRepository.existsByUserName(user.userName))
-            errorMessage.plus(USERNAME_ALREADY_EXISTS.plus(foundUser.userName))
+            errorMessage = errorMessage.plus(USERNAME_ALREADY_EXISTS.plus(foundUser.userName))
         if (user.email != foundUser.email && userRepository.existsByEmail(user.email))
-            errorMessage.plus(USER_EMAIL_ALREADY_EXISTS).plus(foundUser.email)
-        throw ResponseStatusException(HttpStatus.CONFLICT, errorMessage.trim())
+            errorMessage = errorMessage.plus(USER_EMAIL_ALREADY_EXISTS).plus(foundUser.email)
+        if(errorMessage.isNotBlank())
+            throw ResponseStatusException(HttpStatus.CONFLICT, errorMessage.trim())
+        else
+            validatePassword(user)
+
     }
 
     override fun delete(id: Long) {

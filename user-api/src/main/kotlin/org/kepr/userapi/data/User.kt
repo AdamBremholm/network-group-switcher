@@ -10,9 +10,9 @@ import javax.validation.constraints.NotBlank
 
 
 @Entity(name="user")
-data class User(@Column(unique=true) @NotBlank(message = EMPTY_USERNAME_NOT_ALLOWED) var userName: String,
-                @NotBlank @Min(4, message = PASSWORD_LENGTH_WARNING) val password: String,
-                @Column(unique=true) @Email(message = EMAIL_INCORRECTLY_FORMATTED) var email: String)
+data class User(@Column(unique=true) var userName: String,
+                val password: String,
+                @Column(unique=true) var email: String)
 {
 
     @Id

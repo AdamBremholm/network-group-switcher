@@ -1,10 +1,9 @@
 package org.kepr.userapi.model
 
 import org.kepr.userapi.data.User
-import javax.validation.constraints.NotBlank
 import kotlin.IllegalStateException
 
-data class UserModelOut(val id: Long?, @NotBlank val userName: String, @NotBlank val email: String) {
+data class UserModelOut(val id: Long?, val userName: String, val email: String) {
 
     companion object {
         fun toModel(user: User): UserModelOut {
@@ -19,7 +18,7 @@ data class UserModelOut(val id: Long?, @NotBlank val userName: String, @NotBlank
                     toModel(any)
                 }
                 is List<*> -> toModel(any)
-                else -> throw IllegalStateException("any is not user or List")
+                else -> throw IllegalStateException("any is".plus(any))
             }
         }
     }

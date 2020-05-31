@@ -7,11 +7,12 @@ import javax.persistence.*
 import javax.validation.constraints.Email
 import javax.validation.constraints.Min
 import javax.validation.constraints.NotBlank
+import javax.validation.constraints.Size
 
-data class UserModelIn(@Column(unique=true) @NotBlank(message = EMPTY_USERNAME_NOT_ALLOWED) var userName: String,
-                @NotBlank @Min(4, message = PASSWORD_LENGTH_WARNING) val password: String,
-                @Min(4, message = PASSWORD_LENGTH_WARNING) @Transient val passwordConfirm : String,
-                @Column(unique=true) @Email(message = EMAIL_INCORRECTLY_FORMATTED) var email: String)
+data class UserModelIn(@Column(unique=true) @field:NotBlank(message = EMPTY_USERNAME_NOT_ALLOWED) var userName: String,
+                       @field:Size(min = 4, message = PASSWORD_LENGTH_WARNING) val password: String,
+                       @field:Size(min = 4, message = PASSWORD_LENGTH_WARNING) @Transient val passwordConfirm : String,
+                       @Column(unique=true) @field:Email(message = EMAIL_INCORRECTLY_FORMATTED) var email: String)
 {
 
     @Id

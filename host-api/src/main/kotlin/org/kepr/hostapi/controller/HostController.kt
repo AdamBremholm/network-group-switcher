@@ -7,6 +7,7 @@ import org.kepr.hostapi.model.HostModel.Companion.toModel
 import org.kepr.hostapi.service.HostService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
+import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import javax.validation.Valid
@@ -14,6 +15,7 @@ import javax.validation.Valid
 @RestController
 @RequestMapping("/api/")
 @Api(value = "host", description = "Rest API for hosts", tags = ["Host API"])
+@Validated
 class HostController(@Autowired private val hostService: HostService) {
 
 

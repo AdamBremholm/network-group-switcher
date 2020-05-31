@@ -18,7 +18,7 @@ class UserController(@Autowired private val userService: UserService) {
 
     @GetMapping("users")
     fun findWithQueryParams(@RequestParam allParams: MutableMap<String, String>): Any {
-        return findWithQueryParams(allParams)
+        return userService.findByParams(allParams)
     }
 
     @GetMapping("users/{id}")
