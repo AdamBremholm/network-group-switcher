@@ -53,13 +53,9 @@ class UserServiceImpl(@Autowired private val userRepository: UserRepository) : U
     override fun save(user: User): User {
         val optFoundUser = userRepository.findUserByUserNameOrEmail(user.userName, user.email)
         validateUserForSave(user, optFoundUser)
-        validatePassword(user)
         return userRepository.save(user)
     }
 
-    private fun validatePassword(user: User) {
-        TODO("Not yet implemented")
-    }
 
     private fun validateUserForSave(user: User, optFoundUser: Optional<User>) {
         if (optFoundUser.isPresent) {
@@ -71,7 +67,13 @@ class UserServiceImpl(@Autowired private val userRepository: UserRepository) : U
                 errorMessage = errorMessage.plus(USER_EMAIL_ALREADY_EXISTS.plus(foundUser.email))
             throw ResponseStatusException(HttpStatus.CONFLICT, errorMessage.trim())
         }
+        validatePassword(user)
     }
+
+    private fun validatePassword(user: User) {
+        if (user.password != user.passwordConfirm) throw ResponseStatusException(HttpStatus.BAD_REQUEST, PASSWORDS_NOT_MATCHING)
+    }
+
     override fun update(user: User, id : Long): User {
         val foundUser = findById(id)
         validateUserForUpdate(user, foundUser)
