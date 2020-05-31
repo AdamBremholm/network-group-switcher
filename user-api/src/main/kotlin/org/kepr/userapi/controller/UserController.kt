@@ -1,16 +1,13 @@
 package org.kepr.userapi.controller
 
 import io.swagger.annotations.Api
-import org.kepr.userapi.config.NON_SUPPORTED_QUERY_PARAM
-import org.kepr.userapi.data.User
-import org.kepr.userapi.model.UserModel
-import org.kepr.userapi.model.UserModel.Companion.toModel
+import org.kepr.userapi.model.UserModelIn
+import org.kepr.userapi.model.UserModelOut
+import org.kepr.userapi.model.UserModelOut.Companion.toModel
 import org.kepr.userapi.service.UserService
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.server.ResponseStatusException
 import javax.validation.Valid
 
 @RestController
@@ -25,13 +22,13 @@ class UserController(@Autowired private val userService: UserService) {
     }
 
     @GetMapping("users/{id}")
-    fun findById(@PathVariable id : Long) : UserModel = toModel(userService.findById(id))
+    fun findById(@PathVariable id : Long) : UserModelOut = toModel(userService.findById(id))
 
     @PostMapping("users")
-    fun save(@Valid @RequestBody user : User) : UserModel = toModel(userService.save(user))
+    fun save(@Valid @RequestBody userModelIn : UserModelIn) : UserModelOut = toModel(userService.save(userModelIn))
 
     @PutMapping("users/{id}")
-    fun update(@PathVariable id: Long, @RequestBody user : User) : UserModel = toModel(userService.update(user, id))
+    fun update(@PathVariable id: Long, @RequestBody userModelIn : UserModelIn) : UserModelOut = toModel(userService.update(userModelIn, id))
 
     @DeleteMapping("users/{id}")
     fun delete(@PathVariable id : Long) = userService.delete(id)
