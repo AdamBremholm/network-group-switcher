@@ -8,8 +8,11 @@ import org.kepr.hostapi.model.HostModel
 import org.kepr.hostapi.repository.AliasRepository
 import org.kepr.hostapi.repository.HostRepository
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
+import org.springframework.validation.Validator
+import org.springframework.validation.annotation.Validated
 import org.springframework.web.server.ResponseStatusException
 
 
@@ -52,10 +55,11 @@ class HostServiceImpl(@Autowired private val hostRepository: HostRepository, @Au
         val foundAlias = aliasRepository.findAliasByName(hostModel.alias)
         val foundHostOptional = hostRepository.findById(id)
         validateForUpdate(hostModel, foundHostOptional.orElse(null), foundAlias.orElse(null))
-        validateAddress(hostModel)
         val hostToUpdate = foundHostOptional.get()
-        if (hostModel.address.isNotBlank())
+        if (hostModel.address.isNotBlank()) {
+            validateAddress(hostModel)
             hostToUpdate.address = hostModel.address
+        }
         if (hostModel.name.isNotBlank())
             hostToUpdate.name = hostModel.name
         if (foundAlias.isPresent)
@@ -68,6 +72,31 @@ class HostServiceImpl(@Autowired private val hostRepository: HostRepository, @Au
         val foundHostOpt = hostRepository.findById(id)
         val foundHost = foundHostOpt.orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, NO_HOST_FOUND_WITH_ID.plus(id)) }
         hostRepository.delete(foundHost)
+    }
+
+    override fun findByQueryParams(allParams: MutableMap<String, String>): Any {
+        return if (allParams.isEmpty())
+            HostModel.toModel(findAll())
+        else {
+            checkForNotAllowedKeysInQuery(allParams)
+            if (allParams.containsKey("name") && allParams.containsKey("address"))
+                HostModel.toModel(findByNameAndAddress(allParams["name"]
+                        ?: "", allParams["address"] ?: ""))
+            else if (allParams.containsKey("name")) HostModel.toModel(findByName(allParams["name"]
+                    ?: ""))
+            else if (allParams.containsKey("address")) HostModel.toModel(findByAddress(allParams["address"]
+                    ?: ""))
+            else throw ResponseStatusException(HttpStatus.BAD_REQUEST, "could not parse query params, please check the docs")
+        }
+    }
+
+    private fun checkForNotAllowedKeysInQuery(allParams: MutableMap<String, String>) {
+        val allowedKeys = setOf("name", "address")
+        allParams.keys.forEach {
+            if (!allowedKeys.contains(it))
+                throw ResponseStatusException(HttpStatus.BAD_REQUEST, NON_SUPPORTED_QUERY_PARAM.plus(it))
+        }
+
     }
 
     private fun validateForSave(hostModel: HostModel, foundHost: Host?, foundAlias: Alias?) {

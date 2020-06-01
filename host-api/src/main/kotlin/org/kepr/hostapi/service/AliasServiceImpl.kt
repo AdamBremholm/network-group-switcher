@@ -1,9 +1,6 @@
 package org.kepr.hostapi.service
 
-import org.kepr.hostapi.config.ALIAS_NAME_ALREADY_EXISTS
-import org.kepr.hostapi.config.NO_ALIAS_FOUND_WITH_ID
-import org.kepr.hostapi.config.NO_ALIAS_FOUND_WITH_NAME
-import org.kepr.hostapi.config.THESE_HOSTS_WERE_NOT_FOUND
+import org.kepr.hostapi.config.*
 import org.kepr.hostapi.data.Alias
 import org.kepr.hostapi.data.Host
 import org.kepr.hostapi.model.AliasModel
@@ -43,6 +40,9 @@ class AliasServiceImpl(@Autowired private val aliasRepository: AliasRepository, 
         if (aliasModel.hosts.isNotEmpty())
             foundAlias.hosts = dbHosts
 
+        for (host in dbHosts)
+            host.alias=foundAlias
+
         return aliasRepository.save(foundAlias)
     }
 
@@ -55,6 +55,25 @@ class AliasServiceImpl(@Autowired private val aliasRepository: AliasRepository, 
         dismissHosts(foundAlias)
         aliasRepository.delete(foundAlias)
         hostRepository.deleteAll(hosts)
+    }
+
+    override fun findByQueryParams(allParams: MutableMap<String, String>): Any {
+        return if (allParams.isEmpty())
+            AliasModel.toModel(findAll())
+        else {
+            checkForNotAllowedKeysInQuery(allParams)
+            if (allParams.containsKey("name")) AliasModel.toModel(findByName(allParams["name"]
+                    ?: ""))
+            else throw ResponseStatusException(HttpStatus.BAD_REQUEST, "could not parse query params, please check the docs")
+        }
+    }
+
+    private fun checkForNotAllowedKeysInQuery(allParams: Map<String, String>) {
+        val allowedKeys = setOf("name")
+        allParams.keys.forEach {
+            if (!allowedKeys.contains(it))
+                throw ResponseStatusException(HttpStatus.BAD_REQUEST, NON_SUPPORTED_QUERY_PARAM.plus(it))
+        }
     }
 
     private fun dismissParent(host: Host) {

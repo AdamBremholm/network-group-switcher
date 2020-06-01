@@ -9,7 +9,7 @@ data class AliasModel(val id: Long? = null, @field:NotBlank(message = EMPTY_NAME
 
     companion object {
         fun toModel(alias: Alias): AliasModel {
-            return AliasModel(alias.id ?: throw IllegalStateException(), alias.name, alias.hosts?.map { it.name })
+            return AliasModel(alias.id ?: throw IllegalStateException(), alias.name, alias.hosts.map { it.name })
         }
 
         fun toModel(aliasList: List<Alias>): List<AliasModel> {

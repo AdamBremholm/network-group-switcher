@@ -20,24 +20,7 @@ import javax.validation.Valid
 class AliasController(@Autowired private val aliasService : AliasService) {
 
     @GetMapping("aliases")
-    fun findWithQueryParams(@RequestParam allParams: Map<String, String>): Any {
-        return if (allParams.isEmpty())
-            toModel(aliasService.findAll())
-        else {
-            checkForNotAllowedKeysInQuery(allParams)
-            if (allParams.containsKey("name")) toModel(aliasService.findByName(allParams["name"]
-                    ?: ""))
-            else throw ResponseStatusException(HttpStatus.BAD_REQUEST, "could not parse query params, please check the docs")
-        }
-    }
-
-    private fun checkForNotAllowedKeysInQuery(allParams: Map<String, String>) {
-        val allowedKeys = setOf("name")
-        allParams.keys.forEach {
-            if (!allowedKeys.contains(it))
-                throw ResponseStatusException(HttpStatus.BAD_REQUEST, NON_SUPPORTED_QUERY_PARAM.plus(it))
-        }
-    }
+    fun findWithQueryParams(@RequestParam allParams: MutableMap<String, String>): Any = aliasService.findByQueryParams(allParams)
 
     @GetMapping("aliases/{id}")
     fun findById(@PathVariable id : Long) : AliasModel = toModel(aliasService.findById(id))

@@ -12,4 +12,5 @@ interface AliasService {
     fun save(aliasModel : AliasModel) : Alias
     fun update(aliasModel: AliasModel, id: Long) : Alias
     fun delete(id: Long)
+    fun findByQueryParams(allParams: MutableMap<String, String>): Any
 }

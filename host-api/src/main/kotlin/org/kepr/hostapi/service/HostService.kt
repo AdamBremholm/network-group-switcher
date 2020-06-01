@@ -15,4 +15,5 @@ interface HostService{
     fun save(hostModel : HostModel) : Host
     fun update(hostModel: HostModel, id: Long) : Host
     fun delete(id: Long)
+    fun findByQueryParams(allParams: MutableMap<String, String>): Any
 }
