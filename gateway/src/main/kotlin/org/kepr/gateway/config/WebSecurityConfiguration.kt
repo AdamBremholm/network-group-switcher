@@ -1,6 +1,6 @@
-package org.kepr.auth.security
+package org.kepr.gateway.config
 
-import org.kepr.auth.service.UserServiceImpl
+import org.kepr.gateway.security.JWTAuthorizationFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
@@ -19,7 +19,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 @EnableWebSecurity
 class WebSecurityConfiguration(
         val bCryptPasswordEncoder: BCryptPasswordEncoder,
-        val userDetailsService: UserServiceImpl,
+        val userDetailsService: MyUserDetailsService,
         val jwtProperties: JwtProperties
 
 ) : WebSecurityConfigurerAdapter() {
@@ -39,18 +39,11 @@ class WebSecurityConfiguration(
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS) // no sessions
                 .and()
                 .authorizeRequests()
-                .antMatchers("/v2/api-docs",
-                        "/configuration/ui",
-                        "/swagger-resources/**",
-                        "/configuration/security",
-                        "/swagger-ui.html",
-                        "/webjars/**").permitAll()
-                .antMatchers(("/api/**")).permitAll()
+                .antMatchers(HttpMethod.POST,"/login/**").permitAll()
                 .antMatchers("/error/**").permitAll()
-                .antMatchers(HttpMethod.POST, "/login").permitAll()
                 .anyRequest().authenticated()
                 .and()
-                .addFilter(JWTAuthenticationFilter(authenticationManager(), jwtProperties))
+                .addFilter(JWTAuthorizationFilter(authenticationManager(), jwtProperties))
     }
 
     @Bean

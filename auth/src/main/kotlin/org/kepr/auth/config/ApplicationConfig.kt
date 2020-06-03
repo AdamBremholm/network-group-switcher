@@ -1,6 +1,5 @@
 package org.kepr.auth.config
 
-import io.jsonwebtoken.Jwt
 import org.kepr.auth.security.JwtProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
