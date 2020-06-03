@@ -5,9 +5,10 @@ import org.kepr.auth.data.User
 import org.kepr.auth.model.UserModelIn
 import org.kepr.auth.model.UserModelOut.Companion.toModel
 import org.kepr.auth.repository.UserRepository
-import org.kepr.auth.security.UserPrincipal
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
+import org.springframework.security.core.GrantedAuthority
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.core.userdetails.UsernameNotFoundException
@@ -62,7 +63,7 @@ class UserServiceImpl(@Autowired private val userRepository: UserRepository) : U
     override fun save(userModelIn: UserModelIn): User {
         val optFoundUser = userRepository.findUserByUserNameOrEmail(userModelIn.userName, userModelIn.email)
         validateUserForSave(userModelIn, optFoundUser)
-        return userRepository.save(User(userModelIn.userName, BCryptPasswordEncoder().encode(userModelIn.password), userModelIn.email, USER_ROLE))
+        return userRepository.save(User(userModelIn.userName, BCryptPasswordEncoder().encode(userModelIn.password), userModelIn.email, mutableSetOf(USER_ROLE)))
     }
 
 
@@ -117,8 +118,11 @@ class UserServiceImpl(@Autowired private val userRepository: UserRepository) : U
 
     @Throws(UsernameNotFoundException::class)
     override fun loadUserByUsername(username: String?): UserDetails {
-        userRepository.findUserByUserName(username?:"").orElseThrow{UsernameNotFoundException(NO_USER_FOUND_WITH_USERNAME.plus(username))}
-        return UserPrincipal(findByUserName(username?:""))
+        val foundUser = userRepository.findUserByUserName(username?:"").orElseThrow{UsernameNotFoundException(NO_USER_FOUND_WITH_USERNAME.plus(username))}
+        val authorities = ArrayList<GrantedAuthority>()
+        foundUser.roles.forEach { authorities.add(SimpleGrantedAuthority(it)) }
+
+        return org.springframework.security.core.userdetails.User(foundUser.userName, foundUser.password, authorities)
     }
 
 }

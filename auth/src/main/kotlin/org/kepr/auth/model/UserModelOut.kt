@@ -1,13 +1,14 @@
 package org.kepr.auth.model
 
 import org.kepr.auth.data.User
+import java.util.stream.Collectors.toList
 import kotlin.IllegalStateException
 
-data class UserModelOut(val id: Long?, val userName: String, val email: String, val role: String) {
+data class UserModelOut(val id: Long?, val userName: String, val email: String, val roles: List<String>) {
 
     companion object {
         fun toModel(user: User): UserModelOut {
-            return UserModelOut(user.id ?: throw IllegalStateException(), user.userName, user.email, user.role)
+            return UserModelOut(user.id ?: throw IllegalStateException(), user.userName, user.email, ArrayList<String>(user.roles))
         }
         fun toModel(userList: List<User>): List<UserModelOut> {
             return userList.map { toModel(it) }

@@ -28,7 +28,7 @@ class ApplicationConfig(val jwtProperties: JwtProperties) {
         return Docket(DocumentationType.SWAGGER_2)
                 .apiInfo(getApiInfo())
                 .select()
-                .apis(RequestHandlerSelectors.basePackage("org.kepr.userapi.controller"))
+                .apis(RequestHandlerSelectors.basePackage("org.kepr.auth.controller"))
                 .paths(PathSelectors.any())
                 .build()
     }

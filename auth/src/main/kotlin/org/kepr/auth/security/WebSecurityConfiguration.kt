@@ -39,7 +39,13 @@ class WebSecurityConfiguration(
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS) // no sessions
                 .and()
                 .authorizeRequests()
-                .antMatchers("/api/**").permitAll()
+                .antMatchers("/v2/api-docs",
+                        "/configuration/ui",
+                        "/swagger-resources/**",
+                        "/configuration/security",
+                        "/swagger-ui.html",
+                        "/webjars/**").permitAll()
+                .antMatchers(("/api/**")).permitAll()
                 .antMatchers("/error/**").permitAll()
                 .antMatchers(HttpMethod.POST, "/login").permitAll()
                 .anyRequest().authenticated()
