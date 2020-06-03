@@ -40,6 +40,8 @@ class WebSecurityConfiguration(
                 .and()
                 .authorizeRequests()
                 .antMatchers(HttpMethod.POST,"/login/**").permitAll()
+                .antMatchers("/api/users/").permitAll()
+                .antMatchers("/api/hosts/").permitAll()
                 .antMatchers("/error/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
