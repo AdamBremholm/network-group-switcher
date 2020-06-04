@@ -221,7 +221,6 @@ class UserControllerIntegrationTest {
         val headers = HttpHeaders()
         headers.set("X-COM-PERSIST", "true")
         val request: HttpEntity<UserModelIn> = HttpEntity<UserModelIn>(headers)
-        println(userService.findAll())
         testRestTemplate.exchange(USER_API_PATH.plus("/").plus(savedUser.id), HttpMethod.DELETE, request, String::class.java)
         assertFalse(userRepository.existsByUserName("bengt2"))
     }
