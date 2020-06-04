@@ -19,7 +19,7 @@ import org.springframework.http.*
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = [AuthApplication::class, SecurityConfig::class])
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class UserControllerIntegrationTest {
     @Autowired
@@ -40,7 +40,7 @@ class UserControllerIntegrationTest {
     @BeforeAll
     fun setup() {
         userModelInGlobal = UserModelIn("adam", "12345", "12345", "adam@gmail.com")
-        user = User("bengt", BCryptPasswordEncoder().encode("12345"), " bengt@gmail.com", USER_ROLE)
+        user = User("bengt", BCryptPasswordEncoder().encode("12345"), " bengt@gmail.com", mutableSetOf(USER_ROLE))
     }
 
     @Test
