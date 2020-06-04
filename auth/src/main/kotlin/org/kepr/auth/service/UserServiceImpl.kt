@@ -14,6 +14,8 @@ import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
+import org.springframework.web.client.RestTemplate
+import org.springframework.web.client.getForObject
 import org.springframework.web.server.ResponseStatusException
 import java.util.*
 
@@ -118,11 +120,11 @@ class UserServiceImpl(@Autowired private val userRepository: UserRepository) : U
 
     @Throws(UsernameNotFoundException::class)
     override fun loadUserByUsername(username: String?): UserDetails {
-        val foundUser = userRepository.findUserByUserName(username?:"").orElseThrow{UsernameNotFoundException(NO_USER_FOUND_WITH_USERNAME.plus(username))}
+       val foundUser = RestTemplate().getForObject("http://user-api-service/users/loadforauth/".plus(username), User::class.java)
         val authorities = ArrayList<GrantedAuthority>()
-        foundUser.roles.forEach { authorities.add(SimpleGrantedAuthority(it)) }
+        foundUser?.roles?.forEach { authorities.add(SimpleGrantedAuthority(it)) }
 
-        return org.springframework.security.core.userdetails.User(foundUser.userName, foundUser.password, authorities)
+        return org.springframework.security.core.userdetails.User(foundUser?.userName, foundUser?.password, authorities)
     }
 
 }

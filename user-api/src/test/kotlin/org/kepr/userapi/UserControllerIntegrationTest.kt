@@ -66,6 +66,17 @@ class UserControllerIntegrationTest {
         savedUser.id?.let { userService.delete(it) }
     }
 
+    @Test
+    fun findByUserNameForAuth(){
+        val userModelIn = UserModelIn("bengt", "1234", "1234", "bengt@gmail.com")
+        val savedUser = userService.save(userModelIn)
+        val result = testRestTemplate.getForEntity(USER_API_PATH.plus("/loadforauth/bengt"), String::class.java)
+        assertNotNull(result)
+        assertEquals(result.statusCode, HttpStatus.OK)
+        assertTrue(result.body.toString().contains(userModelIn.userName))
+        assertTrue(result.body.toString().contains("password"))
+        savedUser.id?.let { userService.delete(it) }
+    }
 
     @Test
     fun findOne_By_Id_Throws_NotFoundException_When_None_Exists() {

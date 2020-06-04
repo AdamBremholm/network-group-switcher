@@ -1,5 +1,6 @@
 package org.kepr.gateway.config
 
+import org.kepr.gateway.security.JWTAuthenticationFilter
 import org.kepr.gateway.security.JWTAuthorizationFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -40,11 +41,9 @@ class WebSecurityConfiguration(
                 .and()
                 .authorizeRequests()
                 .antMatchers(HttpMethod.POST,"/login/**").permitAll()
-                .antMatchers("/api/users/").permitAll()
-                .antMatchers("/api/hosts/").permitAll()
-                .antMatchers("/error/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
+                .addFilter(JWTAuthenticationFilter(authenticationManager(), jwtProperties))
                 .addFilter(JWTAuthorizationFilter(authenticationManager(), jwtProperties))
     }
 

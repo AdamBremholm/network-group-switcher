@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*
 import javax.validation.Valid
 
 @RestController
-@RequestMapping("/api/")
+@RequestMapping("/api/network/")
 @Api(value = "host", description = "Rest API for hosts", tags = ["Host API"])
 @Validated
 class HostController(@Autowired private val hostService: HostService) {

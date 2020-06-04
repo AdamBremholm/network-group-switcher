@@ -14,7 +14,7 @@ import org.springframework.web.server.ResponseStatusException
 import javax.validation.Valid
 
 @RestController
-@RequestMapping("/api/")
+@RequestMapping("/api/network/")
 @Api(value = "alias", description = "Rest API for aliases", tags = ["Alias API"])
 @Validated
 class AliasController(@Autowired private val aliasService : AliasService) {

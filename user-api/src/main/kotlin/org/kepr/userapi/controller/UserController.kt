@@ -1,6 +1,7 @@
 package org.kepr.userapi.controller
 
 import io.swagger.annotations.Api
+import org.kepr.userapi.data.User
 import org.kepr.userapi.model.UserModelIn
 import org.kepr.userapi.model.UserModelOut
 import org.kepr.userapi.model.UserModelOut.Companion.toModel
@@ -19,6 +20,11 @@ class UserController(@Autowired private val userService: UserService) {
     @GetMapping("users")
     fun findWithQueryParams(@RequestParam allParams: MutableMap<String, String>): Any {
         return userService.findByParams(allParams)
+    }
+
+    @GetMapping("users/loadforauth/{userName}")
+    fun findWithQueryParams(@PathVariable userName : String): User {
+        return userService.findByUserName(userName)
     }
 
     @GetMapping("users/{id}")
