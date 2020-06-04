@@ -72,7 +72,7 @@ class AliasControllerIntegrationTest {
         val result = testRestTemplate.getForEntity(ALIAS_API_PATH.plus("?name=nyc"), String::class.java)
         assertNotNull(result)
         assertEquals(result.statusCode, HttpStatus.OK)
-        assertTrue(result.body.toString().contains(nycAlias.name!!))
+        assertTrue(result.body.toString().contains(nycAlias.name))
         savedAlias.id?.let { aliasService.delete(it) }
     }
 
