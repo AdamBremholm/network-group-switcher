@@ -8,4 +8,4 @@
  */
 
 rootProject.name = "network-group-switcher"
-include("host-api", "gateway", "auth", "eureka", "user-api")
+include("host-api", "gateway", "eureka", "user-api")

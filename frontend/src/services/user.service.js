@@ -20,21 +20,17 @@ const UserService = {
   login: async function(username, password) {
     const requestData = {
       method: "post",
-      url: "/authenticate",
+      url: "/login",
       data: {
-        // grant_type: 'password',
-        username: username,
+        userName: username,
         password: password
       }
-      /*auth: {
-                username: process.env.VUE_APP_CLIENT_ID,
-                password: process.env.VUE_APP_CLIENT_SECRET
-            }*/
     };
 
     try {
       const response = await ApiService.customRequest(requestData);
-      TokenService.saveToken(response.data.token);
+      console.log(response.headers)
+      TokenService.saveToken(response.headers.Authorization);
       TokenService.saveRefreshToken(response.data.refresh_token);
       ApiService.setHeader();
       ApiService.mount401Interceptor();
@@ -55,15 +51,11 @@ const UserService = {
 
     const requestData = {
       method: "post",
-      url: "/authenticate",
+      url: "/login",
       data: {
         grant_type: "refresh_token",
         refresh_token: refreshToken
       },
-      auth: {
-        username: process.env.VUE_APP_CLIENT_ID,
-        password: process.env.VUE_APP_CLIENT_SECRET
-      }
     };
 
     try {

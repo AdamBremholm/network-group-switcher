@@ -12,7 +12,7 @@ class ConnectionError extends Error {
 const AliasService = {
   async loadAliases() {
     try {
-      return await ApiService.get("/api/v1/aliases");
+      return await ApiService.get("/api/network/aliases");
     } catch (error) {
       throw new ConnectionError(
         error.response.status,
