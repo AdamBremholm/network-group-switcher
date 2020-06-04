@@ -29,12 +29,12 @@ const UserService = {
 
     try {
       const response = await ApiService.customRequest(requestData);
-      console.log(response.headers)
-      TokenService.saveToken(response.headers.Authorization);
-      TokenService.saveRefreshToken(response.data.refresh_token);
+      let authHeader = response.headers.authorization
+      let strippedToken = authHeader.substring(7, authHeader.length)
+      TokenService.saveToken(strippedToken);
       ApiService.setHeader();
       ApiService.mount401Interceptor();
-      return response.data.token;
+      return strippedToken;
     } catch (error) {
       throw new AuthenticationError(
         error.response.status,
