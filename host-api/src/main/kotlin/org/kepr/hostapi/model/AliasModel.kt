@@ -5,11 +5,11 @@ import org.kepr.hostapi.data.Alias
 import java.lang.IllegalStateException
 import javax.validation.constraints.NotBlank
 
-data class AliasModel(val id: Long? = null, @field:NotBlank(message = EMPTY_NAME_NOT_ALLOWED) val name: String = "", val hosts: List<String> = mutableListOf()) {
+data class AliasModel(val id: Long? = null, @field:NotBlank(message = EMPTY_NAME_NOT_ALLOWED) val name: String = "", val hosts: List<HostModel> = mutableListOf()) {
 
     companion object {
         fun toModel(alias: Alias): AliasModel {
-            return AliasModel(alias.id ?: throw IllegalStateException(), alias.name, alias.hosts.map { it.name })
+            return AliasModel(alias.id ?: throw IllegalStateException(), alias.name, alias.hosts.map { HostModel.toModel(it) })
         }
 
         fun toModel(aliasList: List<Alias>): List<AliasModel> {

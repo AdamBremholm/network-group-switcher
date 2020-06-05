@@ -11,6 +11,7 @@ const state = {
 
 const mutations = {
   setAliases(state, loadedAliases) {
+    console.log(loadedAliases)
     state.aliasList = loadedAliases;
   },
   updateList(state, action) {

@@ -20,9 +20,9 @@
         <div
           class="list-group-item"
           v-for="(e2, i) in element.hosts"
-          :key="e2.name"
+          :key="e2.id"
         >
-          {{ e2.name }} {{ e2.address }}
+          {{ e2 }} {{ e2.address }}
         </div>
       </draggable>
     </div>

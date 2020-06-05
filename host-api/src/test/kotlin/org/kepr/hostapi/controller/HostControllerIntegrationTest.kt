@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.kepr.hostapi.config.*
 import org.kepr.hostapi.model.AliasModel
+import org.kepr.hostapi.model.AliasModelIn
 import org.kepr.hostapi.model.HostModel
 import org.kepr.hostapi.repository.HostRepository
 import org.kepr.hostapi.service.AliasService
@@ -38,17 +39,17 @@ class HostControllerIntegrationTest {
     @Autowired
     lateinit var objectMapper: ObjectMapper
 
-    lateinit var nycAlias: AliasModel
-    lateinit var stockholmAlias: AliasModel
-    lateinit var finlandAlias: AliasModel
+    lateinit var nycAlias: AliasModelIn
+    lateinit var stockholmAlias: AliasModelIn
+    lateinit var finlandAlias: AliasModelIn
     lateinit var desktopHostModel: HostModel
     lateinit var raspberryPi: HostModel
 
     @BeforeAll
     fun setup() {
-        nycAlias = AliasModel(null, "nyc", mutableListOf())
-        stockholmAlias = AliasModel(null, "stockholm", mutableListOf())
-        finlandAlias = AliasModel(null, "finland", mutableListOf())
+        nycAlias = AliasModelIn(null, "nyc", mutableListOf())
+        stockholmAlias = AliasModelIn(null, "stockholm", mutableListOf())
+        finlandAlias = AliasModelIn(null, "finland", mutableListOf())
         desktopHostModel = HostModel(null, "192.168.1.102", "desktop", "nyc")
         raspberryPi = HostModel(null, "192.168.1.103", "raspberry-pi", "finland")
     }

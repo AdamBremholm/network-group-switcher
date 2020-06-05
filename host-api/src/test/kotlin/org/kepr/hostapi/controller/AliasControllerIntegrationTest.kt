@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.kepr.hostapi.config.*
 import org.kepr.hostapi.model.AliasModel
+import org.kepr.hostapi.model.AliasModelIn
 import org.kepr.hostapi.model.HostModel
 import org.kepr.hostapi.repository.AliasRepository
 import org.kepr.hostapi.repository.HostRepository
@@ -40,17 +41,17 @@ class AliasControllerIntegrationTest {
 
     lateinit var objectMapper: ObjectMapper
 
-    lateinit var nycAlias: AliasModel
-    lateinit var stockholmAlias: AliasModel
-    lateinit var finlandAlias: AliasModel
+    lateinit var nycAlias: AliasModelIn
+    lateinit var stockholmAlias: AliasModelIn
+    lateinit var finlandAlias: AliasModelIn
     lateinit var desktopHostModel: HostModel
     lateinit var raspberryPi: HostModel
 
     @BeforeAll
     fun setup() {
-        nycAlias = AliasModel(null, "nyc", mutableListOf())
-        stockholmAlias = AliasModel(null, "stockholm", mutableListOf())
-        finlandAlias = AliasModel(null, "finland", mutableListOf())
+        nycAlias = AliasModelIn(null, "nyc", mutableListOf())
+        stockholmAlias = AliasModelIn(null, "stockholm", mutableListOf())
+        finlandAlias = AliasModelIn(null, "finland", mutableListOf())
         desktopHostModel = HostModel(null, "192.168.1.102", "desktop", "nyc")
         raspberryPi = HostModel(null, "192.168.1.103", "raspberry-pi", "finland")
     }
@@ -91,10 +92,10 @@ class AliasControllerIntegrationTest {
     fun saveOne_Throws_ConflictException_When_Same_Name_Exists() {
         val savedAlias = aliasService.save(nycAlias)
         val savedHost = hostService.save(desktopHostModel)
-        val aliasModel = AliasModel(null, "nyc", listOf())
+        val aliasModel = AliasModelIn(null, "nyc", listOf())
         val headers = HttpHeaders()
         headers.set("X-COM-PERSIST", "true")
-        val request: HttpEntity<AliasModel> = HttpEntity<AliasModel>(aliasModel, headers)
+        val request: HttpEntity<AliasModelIn> = HttpEntity<AliasModelIn>(aliasModel, headers)
         val result = testRestTemplate.postForEntity(ALIAS_API_PATH, request, String::class.java)
         assertEquals(result.statusCode, HttpStatus.CONFLICT)
         savedHost.id?.let { hostService.delete(it) }
@@ -104,10 +105,10 @@ class AliasControllerIntegrationTest {
 
     @Test
     fun saveOne_Throws_BadRequestException_On_Blank_String_In_Name() {
-        val aliasModel = AliasModel(null, " ", listOf())
+        val aliasModel = AliasModelIn(null, " ", listOf())
         val headers = HttpHeaders()
         headers.set("X-COM-PERSIST", "true")
-        val request: HttpEntity<AliasModel> = HttpEntity<AliasModel>(aliasModel, headers)
+        val request: HttpEntity<AliasModelIn> = HttpEntity<AliasModelIn>(aliasModel, headers)
         val result = testRestTemplate.postForEntity(ALIAS_API_PATH, request, String::class.java)
         println(result.toString())
         assertTrue(result.body.toString().contains(EMPTY_NAME_NOT_ALLOWED))
@@ -115,10 +116,10 @@ class AliasControllerIntegrationTest {
     }
     @Test
     fun saveOne_Allows_no_HostList() {
-        val aliasModel = AliasModel(null, "new-name")
+        val aliasModel = AliasModelIn(null, "new-name")
         val headers = HttpHeaders()
         headers.set("X-COM-PERSIST", "true")
-        val request: HttpEntity<AliasModel> = HttpEntity<AliasModel>(aliasModel, headers)
+        val request: HttpEntity<AliasModelIn> = HttpEntity<AliasModelIn>(aliasModel, headers)
         val result = testRestTemplate.postForEntity(ALIAS_API_PATH, request, String::class.java)
         val resultAliasModel: AliasModel = objectMapper.readValue(result.body ?: throw IllegalStateException())
         assertEquals(result.statusCode, HttpStatus.OK)
@@ -128,10 +129,10 @@ class AliasControllerIntegrationTest {
 
     @Test
     fun saveOne_Throws_BadRequestException_On_Hosts_That_Does_Not_Exists() {
-        val aliasModel = AliasModel(null, "nyc", listOf("non-existent-host", "non-existent-host-2"))
+        val aliasModel = AliasModelIn(null, "nyc", listOf("non-existent-host", "non-existent-host-2"))
         val headers = HttpHeaders()
         headers.set("X-COM-PERSIST", "true")
-        val request: HttpEntity<AliasModel> = HttpEntity<AliasModel>(aliasModel, headers)
+        val request: HttpEntity<AliasModelIn> = HttpEntity<AliasModelIn>(aliasModel, headers)
         val result = testRestTemplate.postForEntity(ALIAS_API_PATH, request, String::class.java)
         assertEquals(result.statusCode, HttpStatus.NOT_FOUND)
         assertTrue(result.body.toString().contains(THESE_HOSTS_WERE_NOT_FOUND))
@@ -141,10 +142,10 @@ class AliasControllerIntegrationTest {
     fun saveOneNormalOperations() {
         val savedAlias = aliasService.save(nycAlias)
         val savedHost = hostService.save(desktopHostModel)
-        val aliasModel = AliasModel(null, "new-alias", listOf())
+        val aliasModel = AliasModelIn(null, "new-alias", listOf())
         val headers = HttpHeaders()
         headers.set("X-COM-PERSIST", "true")
-        val request: HttpEntity<AliasModel> = HttpEntity<AliasModel>(aliasModel, headers)
+        val request: HttpEntity<AliasModelIn> = HttpEntity<AliasModelIn>(aliasModel, headers)
         val result = testRestTemplate.postForEntity(ALIAS_API_PATH, request, String::class.java)
         val resultAliasModel: AliasModel = objectMapper.readValue(result.body ?: throw IllegalStateException())
         assertEquals(result.statusCode, HttpStatus.OK)
@@ -157,10 +158,10 @@ class AliasControllerIntegrationTest {
     fun update_Hosts_In_Aliases_Throws_Error_On_Not_found_Hosts() {
         val savedAlias = aliasService.save(finlandAlias)
         val savedHost = hostService.save(raspberryPi)
-        val aliasModel = AliasModel(name ="newalias", hosts =  listOf("raspberry-pi", "unknown host"))
+        val aliasModel = AliasModelIn(name ="newalias", hosts =  listOf("raspberry-pi", "unknown host"))
         val headers = HttpHeaders()
         headers.contentType = MediaType.APPLICATION_JSON
-        val request: HttpEntity<AliasModel> = HttpEntity<AliasModel>(aliasModel, headers)
+        val request: HttpEntity<AliasModelIn> = HttpEntity<AliasModelIn>(aliasModel, headers)
         val result = testRestTemplate.exchange(ALIAS_API_PATH.plus("/").plus(savedAlias.id), HttpMethod.PUT, request, String::class.java)
         assertNotNull(result)
         assertEquals(result.statusCode, HttpStatus.NOT_FOUND)
@@ -173,10 +174,10 @@ class AliasControllerIntegrationTest {
     fun update_Normal_Operations(){
         val savedAlias = aliasService.save(finlandAlias)
         val savedHost = hostService.save(raspberryPi)
-        val aliasModel = AliasModel(name = "new-alias", hosts =  listOf("raspberry-pi"))
+        val aliasModel = AliasModelIn(name = "new-alias", hosts =  listOf("raspberry-pi"))
         val headers = HttpHeaders()
         headers.set("X-COM-PERSIST", "true")
-        val request: HttpEntity<AliasModel> = HttpEntity<AliasModel>(aliasModel, headers)
+        val request: HttpEntity<AliasModelIn> = HttpEntity<AliasModelIn>(aliasModel, headers)
         val result = testRestTemplate.exchange(ALIAS_API_PATH.plus("/").plus(savedAlias.id), HttpMethod.PUT, request, String::class.java)
         val resultAliasModel: AliasModel = objectMapper.readValue(result.body ?: throw IllegalStateException())
         assertNotNull(result)
@@ -192,10 +193,10 @@ class AliasControllerIntegrationTest {
         val savedAlias = aliasService.save(finlandAlias)
         val savedAlias2 = aliasService.save(nycAlias)
         val savedHost = hostService.save(raspberryPi)
-        val aliasModel = AliasModel(name = "nyc", hosts =  listOf("raspberry-pi"))
+        val aliasModel = AliasModelIn(name = "nyc", hosts =  listOf("raspberry-pi"))
         val headers = HttpHeaders()
         headers.set("X-COM-PERSIST", "true")
-        val request: HttpEntity<AliasModel> = HttpEntity<AliasModel>(aliasModel, headers)
+        val request: HttpEntity<AliasModelIn> = HttpEntity<AliasModelIn>(aliasModel, headers)
         val result = testRestTemplate.exchange(ALIAS_API_PATH.plus("/").plus(savedAlias.id), HttpMethod.PUT, request, String::class.java)
         assertEquals(result.statusCode, HttpStatus.CONFLICT)
         savedHost.id?.let { hostService.delete(it) }

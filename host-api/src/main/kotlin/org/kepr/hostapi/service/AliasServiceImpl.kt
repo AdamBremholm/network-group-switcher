@@ -4,6 +4,7 @@ import org.kepr.hostapi.config.*
 import org.kepr.hostapi.data.Alias
 import org.kepr.hostapi.data.Host
 import org.kepr.hostapi.model.AliasModel
+import org.kepr.hostapi.model.AliasModelIn
 import org.kepr.hostapi.repository.AliasRepository
 import org.kepr.hostapi.repository.HostRepository
 import org.springframework.beans.factory.annotation.Autowired
@@ -25,19 +26,19 @@ class AliasServiceImpl(@Autowired private val aliasRepository: AliasRepository, 
         return aliasRepository.findAliasByName(name).orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, NO_ALIAS_FOUND_WITH_NAME.plus(name)) }
     }
 
-    override fun save(aliasModel: AliasModel): Alias {
-        val dbHosts = hostRepository.findHostsByNameIn(aliasModel.hosts)
-        validateForSave(aliasModel, dbHosts)
-        return aliasRepository.save(Alias(aliasModel.name, dbHosts))
+    override fun save(aliasModelIn: AliasModelIn): Alias {
+        val dbHosts = hostRepository.findHostsByNameIn(aliasModelIn.hosts)
+        validateForSave(aliasModelIn, dbHosts)
+        return aliasRepository.save(Alias(aliasModelIn.name, dbHosts))
     }
 
-    override fun update(aliasModel: AliasModel, id: Long): Alias {
+    override fun update(aliasModelIn: AliasModelIn, id: Long): Alias {
         val foundAlias = aliasRepository.findById(id).orElseThrow { ResponseStatusException(HttpStatus.NOT_FOUND, NO_ALIAS_FOUND_WITH_ID.plus(id)) }
-        val dbHosts = hostRepository.findHostsByNameIn(aliasModel.hosts)
-        validateForUpdate(aliasModel, foundAlias, dbHosts)
-        if (aliasModel.name.isNotBlank())
-            foundAlias.name = aliasModel.name
-        if (aliasModel.hosts.isNotEmpty())
+        val dbHosts = hostRepository.findHostsByNameIn(aliasModelIn.hosts)
+        validateForUpdate(aliasModelIn, foundAlias, dbHosts)
+        if (aliasModelIn.name.isNotBlank())
+            foundAlias.name = aliasModelIn.name
+        if (aliasModelIn.hosts.isNotEmpty())
             foundAlias.hosts = dbHosts
 
         for (host in dbHosts)
@@ -91,21 +92,21 @@ class AliasServiceImpl(@Autowired private val aliasRepository: AliasRepository, 
         alias.hosts.clear()
     }
 
-    private fun validateForSave(aliasModel: AliasModel, dbHosts: MutableSet<Host>) {
-        if (aliasRepository.existsByName(aliasModel.name))
-            throw ResponseStatusException(HttpStatus.CONFLICT, ALIAS_NAME_ALREADY_EXISTS.plus(aliasModel.name))
-        if (dbHosts.size != aliasModel.hosts.size) {
-            val diffList = aliasModel.hosts.minus(dbHosts.map { it.name })
+    private fun validateForSave(aliasModelIn: AliasModelIn, dbHosts: MutableSet<Host>) {
+        if (aliasRepository.existsByName(aliasModelIn.name))
+            throw ResponseStatusException(HttpStatus.CONFLICT, ALIAS_NAME_ALREADY_EXISTS.plus(aliasModelIn.name))
+        if (dbHosts.size != aliasModelIn.hosts.size) {
+            val diffList = aliasModelIn.hosts.minus(dbHosts.map { it.name })
             throw ResponseStatusException(HttpStatus.NOT_FOUND, THESE_HOSTS_WERE_NOT_FOUND.plus(diffList))
         }
 
     }
 
-    private fun validateForUpdate(aliasModel: AliasModel, foundAlias: Alias, dbHosts: MutableSet<Host>) {
-        if (aliasModel.name != foundAlias.name && aliasRepository.existsByName(aliasModel.name))
-            throw ResponseStatusException(HttpStatus.CONFLICT, ALIAS_NAME_ALREADY_EXISTS.plus(aliasModel.name))
-        if (allRequestedHostsAreNotInDb(dbHosts, aliasModel.hosts)) {
-            val diffList = aliasModel.hosts.minus(dbHosts.map { it.name })
+    private fun validateForUpdate(aliasModelIn: AliasModelIn, foundAlias: Alias, dbHosts: MutableSet<Host>) {
+        if (aliasModelIn.name != foundAlias.name && aliasRepository.existsByName(aliasModelIn.name))
+            throw ResponseStatusException(HttpStatus.CONFLICT, ALIAS_NAME_ALREADY_EXISTS.plus(aliasModelIn.name))
+        if (allRequestedHostsAreNotInDb(dbHosts, aliasModelIn.hosts)) {
+            val diffList = aliasModelIn.hosts.minus(dbHosts.map { it.name })
             throw ResponseStatusException(HttpStatus.NOT_FOUND, THESE_HOSTS_WERE_NOT_FOUND.plus(diffList))
         }
 
