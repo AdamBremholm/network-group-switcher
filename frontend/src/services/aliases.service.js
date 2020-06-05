@@ -21,21 +21,6 @@ const AliasService = {
     }
   },
 
-  //Tries to put the changed aliases to backend. If unauthorized the 401 interceptor will take care of it. If other error resets the lists to the state before the put action
-  // Starts with changing the origin so we avoid constraint of unique ids in db.
-  // If error sends up to store where we will reload from backend.
-  async sendAlias({ state }, action) {
-    try {
-      const res = await this.putAlias(state.aliasList[action.origin].id, state.aliasList[action.origin]);
-      const res2 = await this.putAlias(state.aliasList[action.target].id, state.aliasList[action.target]);
-      return res + res2;
-    } catch (e) {
-      if (e instanceof ConnectionError) {
-        console.log("problem with putting at backend, ==> sending error upwards");
-        throw new ConnectionError(error.response.status, error.response.detail);
-      }
-    }
-  },
 
   async sendHost({state}, action) {
     try {
@@ -46,14 +31,6 @@ const AliasService = {
         console.log("problem with putting at backend, ==> sending error upwards");
         throw new ConnectionError(error.response.status, error.response.detail);
       }
-    }
-  },
-
-  async putAlias(IDParam, alias) {
-    try {
-      return await ApiService.put("/api/network/aliases/" + IDParam, alias)
-    }catch (error) {
-      throw new ConnectionError(error.response.status, error.response.detail);
     }
   },
 

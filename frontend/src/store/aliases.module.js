@@ -63,22 +63,6 @@ const actions = {
     }
   },
 
-  // Kör först klart 2 puts och när det är klart uppatera resultatet.
-
-  async sendAlias({ state, commit, dispatch }, action) {
-    commit('sendRequest');
-    try {
-      const res = await AliasService.sendAlias({ state }, action);
-      const res2 = await dispatch("aliases/updateAliasTables", {}, { root: true });
-      commit('sendSuccess');
-      return res+res2;
-    } catch (e) {
-      console.log(e.errorCode + ", " + e.message + "trying to reload aliases");
-      await dispatch("aliases/loadAliases", { commit, dispatch }, { root: true });
-      commit('sendError', {errorCode: e.errorCode,
-        errorMessage: e.message});
-    }
-  },
 
   async sendUpdatedHost({ state, commit, dispatch }, action) {
     commit('sendRequest');

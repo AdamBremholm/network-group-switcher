@@ -83,7 +83,6 @@ export default {
       this.action.target = event.to.id;
       this.updateList(this.action);
       await this.$store.dispatch("aliases/sendUpdatedHost", this.action)
-      //await this.$store.dispatch("aliases/sendAlias", this.action);
     },
     handleClick() {
       this.$store.dispatch("auth/logout");
