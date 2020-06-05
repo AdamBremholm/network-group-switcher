@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
 	id("org.springframework.boot")
 	id("io.spring.dependency-management")
+    java
 	kotlin("plugin.jpa")
 	kotlin("jvm")
 	kotlin("plugin.spring")
@@ -43,6 +44,13 @@ dependencyManagement {
 tasks.withType<Test> {
 	useJUnitPlatform()
 }
+
+tasks.processResources {
+	filesMatching("application.properties") {
+		expand(project.properties)
+	}
+}
+
 
 tasks.withType<KotlinCompile> {
 	kotlinOptions {

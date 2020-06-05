@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
 	id("org.springframework.boot")
 	id("io.spring.dependency-management")
+	java
 	kotlin("jvm")
 	kotlin("plugin.spring")
 }
@@ -40,9 +41,17 @@ tasks.withType<Test> {
 	useJUnitPlatform()
 }
 
+tasks.processResources {
+	filesMatching("application.properties") {
+		expand(project.properties)
+	}
+}
+
+
 tasks.withType<KotlinCompile> {
 	kotlinOptions {
 		freeCompilerArgs = listOf("-Xjsr305=strict")
 		jvmTarget = "1.8"
 	}
 }
+
