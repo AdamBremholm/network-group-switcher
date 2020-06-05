@@ -22,7 +22,7 @@
           v-for="(e2, i) in element.hosts"
           :key="e2.id"
         >
-          {{ e2 }} {{ e2.address }}
+         {{ e2.id }} : {{ e2.name }} , {{ e2.address }}
         </div>
       </draggable>
     </div>
@@ -63,12 +63,13 @@ export default {
     };
   },
   methods: {
-    ...mapActions("aliases", ["sendAlias", "loadAliases"], "auth", ["logout"]),
+    ...mapActions("aliases", ["sendAlias", "loadAliases", "sendUpdatedHost"], "auth", ["logout"]),
     ...mapMutations("aliases", ["updateList"]),
 
     changed(evt) {
       if (evt.hasOwnProperty("added")) {
         this.action.name = evt.added.element.name;
+        this.action.id = evt.added.element.id;
         this.action.newIndex = evt.added.newIndex;
       } else if (evt.hasOwnProperty("removed")) {
         this.action.oldIndex = evt.removed.oldIndex;
@@ -81,7 +82,8 @@ export default {
       this.action.origin = event.from.id;
       this.action.target = event.to.id;
       this.updateList(this.action);
-      await this.$store.dispatch("aliases/sendAlias", this.action);
+      await this.$store.dispatch("aliases/sendUpdatedHost", this.action)
+      //await this.$store.dispatch("aliases/sendAlias", this.action);
     },
     handleClick() {
       this.$store.dispatch("auth/logout");

@@ -24,6 +24,8 @@ const mutations = {
       0,
       movedHost[0]
     );
+
+    state.aliasList[action.target].hosts[action.newIndex].alias = state.aliasList[action.target].name
   },
   sendRequest(state) {
     state.sending = true;
@@ -77,6 +79,21 @@ const actions = {
         errorMessage: e.message});
     }
   },
+
+  async sendUpdatedHost({ state, commit, dispatch }, action) {
+    commit('sendRequest');
+    try {
+      const res = await AliasService.sendHost({ state }, action);
+      commit('sendSuccess');
+      return res;
+    } catch (e) {
+      console.log(e.errorCode + ", " + e.message + "trying to reload aliases");
+      await dispatch("aliases/loadAliases", { commit, dispatch }, { root: true });
+      commit('sendError', {errorCode: e.errorCode,
+        errorMessage: e.message});
+    }
+  },
+
   async updateAliasTables({commit}) {
     commit('sendRequest');
     try {

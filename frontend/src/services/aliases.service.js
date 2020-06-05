@@ -37,9 +37,29 @@ const AliasService = {
     }
   },
 
+  async sendHost({state}, action) {
+    try {
+      const res = await this.putHost(state.aliasList[action.target].hosts[action.newIndex].id, state.aliasList[action.target].hosts[action.newIndex]);
+      return res;
+    } catch (e) {
+      if (e instanceof ConnectionError) {
+        console.log("problem with putting at backend, ==> sending error upwards");
+        throw new ConnectionError(error.response.status, error.response.detail);
+      }
+    }
+  },
+
   async putAlias(IDParam, alias) {
     try {
-      return await ApiService.put("/api/v1/aliases/" + IDParam, alias)
+      return await ApiService.put("/api/network/aliases/" + IDParam, alias)
+    }catch (error) {
+      throw new ConnectionError(error.response.status, error.response.detail);
+    }
+  },
+
+  async putHost(IDParam, host) {
+    try {
+      return await ApiService.put("/api/network/hosts/" + IDParam, host)
     }catch (error) {
       throw new ConnectionError(error.response.status, error.response.detail);
     }

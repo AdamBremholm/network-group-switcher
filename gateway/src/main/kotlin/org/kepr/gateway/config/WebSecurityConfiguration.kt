@@ -53,6 +53,10 @@ class WebSecurityConfiguration(
         val corsConfiguration = CorsConfiguration()
         corsConfiguration.applyPermitDefaultValues()
         corsConfiguration.addExposedHeader("Authorization")
+        corsConfiguration.addAllowedOrigin("*")
+        corsConfiguration.allowCredentials = true
+        corsConfiguration.addAllowedMethod("*")
+        corsConfiguration.addAllowedHeader("*")
         source.registerCorsConfiguration("/**", corsConfiguration)
         return source
     }
